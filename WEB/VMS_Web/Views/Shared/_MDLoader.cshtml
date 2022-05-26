@@ -1,0 +1,124 @@
+﻿<style>
+    .lds-ring {
+        display: inline-block;
+        position: relative;
+        width: 64px;
+        height: 64px;
+    }
+
+        .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 51px;
+            height: 51px;
+            margin: 6px;
+            border: 6px solid black;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #000000 transparent transparent transparent;
+        }
+
+            .lds-ring div:nth-child(1) {
+                animation-delay: -0.45s;
+            }
+
+            .lds-ring div:nth-child(2) {
+                animation-delay: -0.3s;
+            }
+
+            .lds-ring div:nth-child(3) {
+                animation-delay: -0.15s;
+            }
+
+    @@keyframes lds-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+
+<div class="modal fade" id="modalLoading" tabindex="-1" role="dialog" aria-labelledby="loadMeLabel">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="loader"></div>
+                <div clas="loader-txt">
+                    <p id="labelLoading">Updating Master Data.... <br><br><small>Please wait untill finish..</small></p>
+                </div>
+                <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+        function ShowLoading(isView, text) {
+            if (isView) {
+                $("#labelLoading").html("Updating " + text + ".... <br><br><small>Please wait untill finish..</small>")
+                $("#modalLoading").modal({
+                    backdrop: "static", //remove ability to close modal with click
+                    keyboard: false, //remove option to close with keyboard
+                    show: true //Display loader!
+                });
+            }
+            else {
+                $("#modalLoading").modal("hide");
+                toastr.success("Update " + text + " Successfully", "Success");
+            }
+        }
+</script>
+
+<script id="AjaxRequestOptions">
+        function onLoading() {
+            ShowLoading(true, "@ViewBag.Title");
+        }
+        function onSuccess(data) {
+            if (data.Success) {
+                ShowLoading(false, "Area");
+                $("#loaderDiv").hide();
+                $("#modalEdit").modal("hide");
+                oTable = $('#tableGrid').DataTable();
+                oTable1 = $('#table1').DataTable();
+                oTable2 = $('#table2').DataTable();
+                oTable.draw();
+                oTable1.draw();
+                oTable2.draw();
+            } else {
+                toastr.warning(data.message, 'Warning!')
+            }
+        }
+        function onFailure() {
+            toastr.error("Fail! Please Call IT for Action", 'ERROR!')
+        }
+        function ChangeStatus(TableName, ColumnName, Id) {
+            $.ajax({
+                url: '@Url.Action("ChangeStatus", "MasterData")',
+                cache: false,
+                type: "POST",
+                data: { TableName: TableName, ColumnName: ColumnName, Id: Id },
+                success: function (data) {
+                    if (data.isSuccess) {
+                        toastr.success("Success Change Status", "SUCCESS!");
+                        oTable = $('#tableGrid').DataTable();
+                        oTable.draw();
+                    }
+                    else {
+                        toastr.error(data.message, 'Success!');
+                    }
+                },
+                error: function () {
+                    toastr.error(data.message, 'Warning!');
+                }
+
+            })
+        }
+</script>
+

@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="DBVisitorMSModelStoreContainer" CdmEntityContainer="DBVisitorMSEntities">
+    <EntitySetMapping Name="EPDetails">
+      <EntityTypeMapping TypeName="DBVisitorMSModel.EPDetail">
+        <MappingFragment StoreEntitySet="EPDetails">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="DetailId" ColumnName="DetailId" />
+          <ScalarProperty Name="MasterId" ColumnName="MasterId" />
+          <ScalarProperty Name="UseID" ColumnName="UseID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="EPMasters">
+      <EntityTypeMapping TypeName="DBVisitorMSModel.EPMaster">
+        <MappingFragment StoreEntitySet="EPMaster">
+          <ScalarProperty Name="UpdateDate" ColumnName="UpdateDate" />
+          <ScalarProperty Name="UpdateBy" ColumnName="UpdateBy" />
+          <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="ActIn" ColumnName="ActIn" />
+          <ScalarProperty Name="ActOut" ColumnName="ActOut" />
+          <ScalarProperty Name="MasterId" ColumnName="MasterId" />
+          <ScalarProperty Name="SENo" ColumnName="SENo" />
+          <ScalarProperty Name="EPNo" ColumnName="EPNo" />
+          <ScalarProperty Name="UseDep" ColumnName="UseDep" />
+          <ScalarProperty Name="PlantID" ColumnName="PlantID" />
+          <ScalarProperty Name="Destination" ColumnName="Destination" />
+          <ScalarProperty Name="Date" ColumnName="Date" />
+          <ScalarProperty Name="Out" ColumnName="Out" />
+          <ScalarProperty Name="In" ColumnName="In" />
+          <ScalarProperty Name="CompTrans" ColumnName="CompTrans" />
+          <ScalarProperty Name="CompTransTime" ColumnName="CompTransTime" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="DODetails">
+      <EntityTypeMapping TypeName="DBVisitorMSModel.DODetail">
+        <MappingFragment StoreEntitySet="DODetails">
+          <ScalarProperty Name="UpdateDate" ColumnName="UpdateDate" />
+          <ScalarProperty Name="UpdateBy" ColumnName="UpdateBy" />
+          <ScalarProperty Name="Photo" ColumnName="Photo" />
+          <ScalarProperty Name="ReturnedDate" ColumnName="ReturnedDate" />
+          <ScalarProperty Name="ReturnedBy" ColumnName="ReturnedBy" />
+          <ScalarProperty Name="IsReturned" ColumnName="IsReturned" />
+          <ScalarProperty Name="Remark" ColumnName="Remark" />
+          <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+          <ScalarProperty Name="Product" ColumnName="Product" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="MasterId" ColumnName="MasterId" />
+          <ScalarProperty Name="DetailId" ColumnName="DetailId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="DOMasters">
+      <EntityTypeMapping TypeName="DBVisitorMSModel.DOMaster">
+        <MappingFragment StoreEntitySet="DOMaster">
+          <ScalarProperty Name="UpdateDate" ColumnName="UpdateDate" />
+          <ScalarProperty Name="UpdateBy" ColumnName="UpdateBy" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="ManagerApprove" ColumnName="ManagerApprove" />
+          <ScalarProperty Name="SecurityPic" ColumnName="SecurityPic" />
+          <ScalarProperty Name="SecurityCheck" ColumnName="SecurityCheck" />
+          <ScalarProperty Name="ReceivedPic" ColumnName="ReceivedPic" />
+          <ScalarProperty Name="ReceivedDate" ColumnName="ReceivedDate" />
+          <ScalarProperty Name="ReceiverName" ColumnName="ReceiverName" />
+          <ScalarProperty Name="SealNo" ColumnName="SealNo" />
+          <ScalarProperty Name="ContainerNo" ColumnName="ContainerNo" />
+          <ScalarProperty Name="TimeOut" ColumnName="TimeOut" />
+          <ScalarProperty Name="VechNo" ColumnName="VechNo" />
+          <ScalarProperty Name="DriName" ColumnName="DriName" />
+          <ScalarProperty Name="DelVia" ColumnName="DelVia" />
+          <ScalarProperty Name="Address" ColumnName="Address" />
+          <ScalarProperty Name="ReqDate" ColumnName="ReqDate" />
+          <ScalarProperty Name="UseID" ColumnName="UseID" />
+          <ScalarProperty Name="UseDep" ColumnName="UseDep" />
+          <ScalarProperty Name="DONo" ColumnName="DONo" />
+          <ScalarProperty Name="SENo" ColumnName="SENo" />
+          <ScalarProperty Name="MasterId" ColumnName="MasterId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="NewsMasters">
+      <EntityTypeMapping TypeName="DBVisitorMSModel.NewsMaster">
+        <MappingFragment StoreEntitySet="NewsMaster">
+          <ScalarProperty Name="FeaturedImage" ColumnName="FeaturedImage" />
+          <ScalarProperty Name="BodyHTML" ColumnName="BodyHTML" />
+          <ScalarProperty Name="BodyTEXT" ColumnName="BodyTEXT" />
+          <ScalarProperty Name="Viewer" ColumnName="Viewer" />
+          <ScalarProperty Name="Status" ColumnName="Status" />
+          <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="Header" ColumnName="Header" />
+          <ScalarProperty Name="NewsId" ColumnName="NewsId" />
+          <ScalarProperty Name="MasterId" ColumnName="MasterId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

@@ -1,0 +1,146 @@
+﻿@model VMS.Web.Models.User
+
+@{
+    ViewBag.Title = "DelegateApproval";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+
+<script>
+    $(document).ready(function () {
+        ShowUser();
+    })
+</script>
+
+
+<script>
+
+    function ShowUser() {
+        var table = $("#UserGrid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "scrollX": true,
+            "ajax": {
+                "url": "@Url.Action("GetListApprover", "Receiptionist")",
+                "type": "POST",
+                "datatype": "json",
+                //"data": function (d) {
+                //    return $.extend({}, d, {
+                //        "Name": Name
+                //    });
+                //}
+            },
+
+                "columnDefs":
+                [{
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                }],
+
+                "fnDrawCallback": function (full) {
+                    $('.chk-1').bootstrapToggle();
+                },
+
+    "columns": [
+
+
+        {
+            "data": "No",
+            render: function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1;
+            }
+        },
+        { "data": "UseID", "name": "UseID", "title": "User Id", "autoWidth": true },
+        { "data": "UseNam", "name": "UseNam", "title": "User Name", "autoWidth": true },
+        { "data": "UseEmail", "name": "UseEmail", "title": "Email", "autoWidth": true },
+        { "data": "UseTel", "name": "UseTel", "title": "Ext No.", "autoWidth": true },
+         {
+             "render": function (data, type, full, meta) {
+                 var data = "";
+                 if (full.isDelegate) {
+                     data = "checked";
+                 }
+                 return '<input id="Id' + full.UseID + '" class="chk-1" type="checkbox" data-toggle="toggle" ' + data + ' onchange="ChangeDelegate(' +"'" + full.UseID + "'" + ')">';
+             }
+         },
+
+    ]
+    }
+        );
+    }
+</script>
+
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Approver
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="UserGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+
+                                        <th>No</th>
+                                        <th>UseID</th>
+                                        <th>UseNam</th>
+                                        <th>UseEmail</th>
+                                        <th>UseTel</th>
+                                        <th>Set Delegate</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+<script>
+    function ChangeDelegate(UseID) {
+
+        $.ajax({
+            url: '@Url.Action("ChangeDelegateByRec", "Receiptionist")',
+            cache: false,
+            type: "POST",
+            data: { UseID: UseID },
+            success: function (data) {
+                if (data.Success) {
+                    toastr.success("Success Change Status Delegate", "SUCCESS!");
+                    oTable = $('#UserGrid').DataTable();
+                    oTable.draw();
+                }
+                else {
+                    ShiMessage.error("ERROR!", data.Message);
+                }
+            },
+            error: function () {
+                toastr.error("Something wrong with this, please call IT!", "ERROR!");
+            }
+
+        })
+    }
+
+</script>

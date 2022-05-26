@@ -1,0 +1,196 @@
+﻿<!--VISITOR IN AREA-->
+<div class="row">
+    <div class="col-md-6 col-md-offset-3" id="boxDetailVisitorInArea" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Detail Visitor
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Hidden("inVisitorId")
+                            @Html.Hidden("inLogId")
+                            @Html.Label("inFullName", "Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inFullName").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inCompany", "Company : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inCompany").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inJobDesc", "Job Title : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inJobDesc").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inStatus", "Status : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inStatus").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inHostName", "Host Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inHostName").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inTimeIn", "TimeIn : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inTimeIn").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inVehicleNo", "Vehicle No : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inVehicleNo").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("inPhone", "Phone Number : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inPhone").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("inRemark", "Remark : ")<br />
+                            @(Html.TextArea("inRemark", "", 3, 3, new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("inRemarkOut", "Remark Out: ")<br />
+                            @(Html.TextArea("inRemarkOut", "", 3, 3, new { @class = "form-control" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="rowMenuVisitor">
+                    <div class="col-md-4" id="rowVisitorCheckIn" hidden="hidden">
+                        <button class="btn btn-success" onclick="PostVisitorAction(3)"><i class="fa fa-sign-in"></i> Check In</button>
+                    </div>
+                    <div class="col-md-4" id="rowVisitorBreak" hidden="hidden">
+                        <button class="btn btn-warning" onclick="PostVisitorAction(2)"><i class="fa fa-sign-out"></i> Break</button>
+                    </div>
+                    <div class="col-md-4 pull-right">
+                        <button class="btn btn-danger" onclick="PostVisitorAction(4)"><i class="fa fa-sign-out"></i> Check Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</div>
+<!--END VISITOR IN AREA-->
+
+<script>
+
+    function fnVisitorToCheckout(VisitorId, LogId) {
+        DP.AJaxAll({
+            VisitorId: VisitorId,
+            LogId:LogId
+        }, "@Url.Action("GetVisitorToCheckout", "NewVisitor")", function (data) {
+            $("#boxDetailVisitorInArea").show("slow");
+            $("#inVisitorId").val(data.VisitorId)
+            $("#inLogId").val(data.LogId)
+            $("#inFullName").val(data.FullName)
+            $("#inCompany").val(data.Company)
+            $("#inStatus").val(data.Status)
+            $("#inHostName").val(data.HostName)
+            $("#inJobDesc").val(data.JobDesc)
+            $("#inVehicleNo").val(data.VehicleNo)
+            $("#inTimeIn").val(data.TimeStart)
+            $("#inPhone").val(data.Phone)
+            $("#inRemark").html(data.Remark)
+            $("#boxSearchByCard").hide("fast");
+            $("#boxSearchByName").hide('fast')
+            $("#boxGridName").hide('fast')
+
+            //Commented by CANICE 20210801 --> Think of a way to make it configurable
+            //if (data.Status === "CHECKIN") {
+            //    $("#rowVisitorBreak").show("slow");
+            //}
+            //else if (data.Status === "BREAK") {
+            //    $("#rowVisitorCheckIn").show("slow");
+            //}
+        })
+    }
+    //function fnVisitorInArea(data) {
+    //    $("#boxDetailVisitorInArea").show("slow");
+    //    $("#inVisitorId").val(data.VisitorId)
+    //    $("#inLogId").val(data.LogId)
+    //    $("#inFullName").val(data.VisitorName)
+    //    $("#inCompany").val(data.VisitorCompany)
+    //    $("#inStatus").val(data.Status)
+    //    $("#inHostName").val(data.HostName)
+    //    $("#inRemark").html(data.Remark)
+    //    $("#boxSearchByCard").hide("fast");
+
+    //    if (data.Status === "CHECKIN") {
+    //        $("#rowVisitorBreak").show("slow");
+    //    }
+    //    else if (data.Status === "BREAK") {
+    //        $("#rowVisitorCheckIn").show("slow");
+    //    }
+    //}
+
+    function PostVisitorAction(Method) {
+        var RemarkOut = $("#inRemarkOut").val();
+        var VisitorId = $("#inVisitorId").val();
+        var logId = $("#inLogId").val();
+        var CardId = $("#CardScanned").val();
+        DP.AJaxAll({
+            VisitorId: VisitorId, LogId: logId, CardId: CardId, Method: Method, Remark: RemarkOut
+        }, '@Url.Action("PostVisitorCheckinOut", "NewVisitor")', function (data) {
+            if (data.Success) {
+                location.reload();
+                toastr.sucess(data.message, "success")
+            }
+            else {
+                ShiMessage.error("ERROR!", data.Message);
+            }
+        })
+
+
+    }
+</script>

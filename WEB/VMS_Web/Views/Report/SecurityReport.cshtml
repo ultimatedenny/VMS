@@ -1,0 +1,214 @@
+﻿
+@{
+    ViewBag.Title = "Report";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<script>
+    $(document).ready(function () {
+        $(window).keydown(function (event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                return false;
+            }
+        });
+    });
+    function GenerateHisGrid() {
+        var dateFrom = $("#DateFromHis").val();
+        var dateTo = $("#DateToHis").val();
+        var plant = $("#Plant").val();
+        var SearchVisitor = $("#SearchVisitor").val();
+        var SearchHost = $("#SearchHost").val();
+        var tableHistoryGrid = $("#HistoryVisitorGrid").DataTable({
+            destroy: true,
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 5,
+            "scrollX": true,
+            fixedColumns:   {
+                leftColumns: 1,
+            },
+            "ajax": {
+                "url": "@Url.Action("GetSecurityReportHistory", "Report")",
+            "type": "POST",
+            "datatype": "json",
+            "data": function (d) {
+                return $.extend({}, d, {
+                    "dateFrom": dateFrom,
+                    "dateTo": dateTo,
+                    "plant": plant,
+                    "SearchVisitor": SearchVisitor,
+                    "SearchHost": SearchHost
+                });
+            }
+            },
+            "rowCallback": function (row, data, index) {
+                $(row).find('td:eq(8)').css('font-weight', 'bold');
+                if (data["NeedApprove"].toUpperCase() == "FALSE") {
+                    $(row).find('td:eq(4)').css('background-color', '#00a65a');
+                    $(row).find('td:eq(4)').css('color', 'white');
+                }
+                else {
+                    $(row).find('td:eq(4)').css('background-color', '#d73925');
+                    $(row).find('td:eq(4)').css('color', 'white');
+
+                }
+            },
+
+            "columnDefs":
+            [{
+                "targets": [0],
+        "visible": true,
+        "searchable": false
+    },
+    {
+                "targets": [5],
+                "searchable": false,
+                "orderable": false
+    }],
+
+    "columns": [
+            {
+                "data": "No",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+            { "data": "HostName", "name": "HostName", "title": "Host Name", "autoWidth": true },
+            { "data": "FullName", "name": "FullName", "title": "Full Name", "autoWidth": true },
+            { "data": "Company", "name": "Company", "title": "Company", "autoWidth": true },
+            { "data": "VisitorType", "name": "VisitorType", "title": "Visitor Type", "autoWidth": true },
+            { "data": "Plant", "name": "Plant", "title": "Plant", "autoWidth": true },
+            { "data": "Area", "name": "Area", "title": "Area", "autoWidth": true },
+            { "data": "Remark", "name": "Remark", "title": "Remark", "autoWidth": true },
+            { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+            { "data": "DateStart", "name": "DateStart", "title": "Date Start", "autoWidth": true },
+            { "data": "TimeStart", "name": "TimeStart", "title": "Time Start", "autoWidth": true },
+            { "data": "TimeEnd", "name": "TimeEnd", "title": "Time End", "autoWidth": true },
+            { "data": "Duration", "name": "Duration", "title": "Duration", "autoWidth": true },
+            { "data": "RemarkVisitor", "name": "RemarkVisitor", "title": "Remark Visitor", "autoWidth": true },
+            { "data": "ApprovedBy", "name": "ApprovedBy", "title": "Approved By", "autoWidth": true },
+
+    ]
+    }
+        );
+    }
+    $(document).ready(function () {
+        GenerateHisGrid();
+    })
+</script>
+
+<div class="row">
+    <div class="col-md-12" id="BoxAppointHistory">
+        <div class="box ShimanoBox ">
+            <div class="box-header">
+                History
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body ">
+                <div class="row">
+@using (Html.BeginForm("ExportSecurityHis", "Report", FormMethod.Post))
+{
+                    <div class="col-md-2">
+                        <div class="k-content">
+                            @Html.Label("DateFromHis", "Date Start")
+                            @(Html.Kendo().DatePicker().Name("DateFromHis")
+          .Start(CalendarView.Month)
+          .Depth(CalendarView.Month)
+          .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeHis"))
+          .Format("yyyy-MM-dd")
+          .Value(DateTime.Today.AddMonths(-1))
+          .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="k-content">
+                            @Html.Label("DateToHis", "Date To")
+                            @(Html.Kendo().DatePicker().Name("DateToHis")
+            .Start(CalendarView.Month)
+            .Depth(CalendarView.Month)
+            .Min(DateTime.Today)
+            .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateHisGrid"))
+            .Format("yyyy-MM-dd")
+            .Value(DateTime.Today)
+            .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="k-content">
+                            @Html.Label("Plant", "Plant")
+                            @Html.Kendo().DropDownList().Name("Plant").OptionLabel("Select Plant...").HtmlAttributes(new { style = "width: 100%", @class = "", data_required_msg = "Please Select the Plant" }).DataTextField("plantName").DataValueField("plantId").DataSource(source => { source.Read(read => { read.Action("getPlantList", "MasterData"); }); }).Events(e=>e.Change("GenerateHisGrid"))
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        @Html.Label("SearchVisitor", "Visitor Name or Company")
+                        @Html.Kendo().TextBox().Name("SearchVisitor").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateHisGrid()" })
+                    </div>
+                    <div class="col-md-2">
+                        @Html.Label("SearchHost", "Host Name")
+                        @Html.Kendo().TextBox().Name("SearchHost").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateHisGrid()" })
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Export</button>
+                    </div>
+}
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="HistoryVisitorGrid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Host Name</th>
+                                        <th>Full Name</th>
+                                        <th>Company</th>
+                                        <th>Visit Type</th>
+                                        <th>Plant</th>
+                                        <th>Area</th>
+                                        <th>Remark</th>
+                                        <th>Status</th>
+                                        <th>DateStart</th>
+                                        <th>TimeStart</th>
+                                        <th>TimeEnd</th>
+                                        <th>Duration</th>
+                                        <th>RemarkVisitor</th>
+                                        <th>ApprovedBy</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+
+        </div>
+    </div>
+</div>
+<script>
+    
+    function startChangeHis() {
+        var endPicker = $("#DateToHis").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateHisGrid();
+    }
+</script>

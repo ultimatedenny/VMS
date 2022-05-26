@@ -1,0 +1,138 @@
+﻿@model VMS.Web.Models.EPMaster
+
+@{
+    ViewBag.Title = "Exit Permit";
+}
+@Scripts.Render("~/Mousetrap")
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+
+
+<div class="form-horizontal">
+    <form id="myForm1">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.MasterId)
+        @Html.HiddenFor(model => model.SENo)
+        @Html.HiddenFor(model => model.EPNo)
+        @Html.HiddenFor(model => model.UseDep)
+        @Html.HiddenFor(model => model.PlantID)
+        @Html.HiddenFor(model => model.Destination)
+        @Html.HiddenFor(model => model.Date)
+        @Html.HiddenFor(model => model.Out)
+        @Html.HiddenFor(model => model.ActOut)
+        @Html.HiddenFor(model => model.In)
+        @Html.HiddenFor(model => model.ActIn)
+        @Html.HiddenFor(model => model.CompTrans)
+        @Html.HiddenFor(model => model.CompTransTime)
+
+        <div class="form-group">
+            <div class="col-md-12">
+                <div style="margin-top:10px">
+                    <table>
+                        <td>
+                            <dt>
+                                <a>EP NUMBER </a>
+                            </dt>
+                            <dt>
+                                <a>DESTINATION </a>
+                            </dt>
+                            <dt>
+                                <a>TIME OUT </a>
+                            </dt>
+                            <dt>
+                                <a>TIME IN </a>
+                            </dt>
+                        </td>
+                        <td>
+                            <dt>
+                                : @Html.DisplayFor(model => model.EPNo)
+                            </dt>
+                            <dt>
+                                : @Html.DisplayFor(model => model.Destination)
+                            </dt>
+                            <dt>
+                                : @Html.DisplayFor(model => model.Out)
+                            </dt>
+                            <dt>
+                                : @Html.DisplayFor(model => model.In)
+                            </dt>
+                        </td>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div style="margin-top:10px">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th>EMPLOYEE</th>
+                            </tr>
+                            @foreach (var item in Model.EPDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.UseID)
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Status, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-12">
+                @Html.DropDownListFor(model => model.Status,
+                  new List<SelectListItem> {
+                       new SelectListItem { Value = "APPROVED" , Text = "APPROVE" },
+                       new SelectListItem { Value = "REJECTED" , Text = "REJECTED" }
+                    },
+                  new { @class = "form-control", @placeholder = "Name" })
+            </div>
+        </div>
+
+    </form>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <a href="#" id="btnSubmit" class="btn btn-success btn-block">
+                <span>UPDATE</span>
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+    $("#btnSubmit").click(function () {
+        var val = @ViewBag.Token;
+        var myformdata = $("#myForm1").serialize();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("UpdateMobile", "ExitPermit", new { area=""})',
+            data: myformdata,
+            success: function () {
+                alert("UPDATING SUCCESS")
+                window.location.replace('https://link.com/' + val);
+            },
+            error: function () {
+                alert("UPDATING SUCCESS")
+                window.location.replace('https://link.com/' + val);
+            }
+        })
+    })
+</script>
+
+

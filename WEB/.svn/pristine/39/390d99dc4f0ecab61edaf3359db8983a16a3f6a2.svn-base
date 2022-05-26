@@ -1,0 +1,416 @@
+﻿@model VMS.Web.Models.EPMaster
+@{
+    ViewBag.Title = "Exit Permit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Scripts.Render("~/Mousetrap")
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+<div class="modal-body">
+    <div class="form-horizontal">
+        <input type="hidden" id="MasterId" />
+        <input type="hidden" id="EPNo" />
+        <div class="form-group">
+            <div class="col-md-4">
+                @Html.Label("Departement", "Departement :")
+                @(Html.Kendo().TextBox()
+                                .Name("UseDep")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+
+            </div>
+            <div class="col-md-4">
+                @Html.Label("Section", "Section :")
+                @(Html.Kendo().ComboBox()
+                                              .Name("PlantId")
+                                              .Filter("contains")
+                                              .Placeholder("Select Plant...")
+                                              .DataTextField("plantName")
+                                              .DataValueField("plantId")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("getPlantList", "MasterData");
+                                                    });
+                                                })
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                              )
+            </div>
+            <div class="col-md-4">
+                @Html.Label("Destination", "Destination :")
+                @(Html.Kendo().TextBox()
+                                .Name("Destination")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-4">
+                @Html.Label("Date", "Date :")
+                @(Html.Kendo().DatePicker()
+                                          .Name("Date")
+                                          .Value(DateTime.Today)
+                                          .Min(DateTime.Today)
+                                          .Max(DateTime.Today)
+                                          .Format("yyyy-MM-dd")
+                                          //.Events(e => e.Change("endChange"))
+                                          .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+
+            <div class="col-md-4">
+                @Html.Label("TimeOut", "Time Out :")
+                @(Html.Kendo().TimePicker()
+                                          .Format("HH:mm")
+                                          .Name("Out")
+                                          .Min(DateTime.Now)
+                                          .Max("4:00 PM")
+                                          .HtmlAttributes(new { style = "width:100%;" })
+                                            )
+            </div>
+
+            <div class="col-md-4">
+                @Html.Label("TimeIn", "Time In :")
+                @(Html.Kendo().TimePicker()
+                                          .Format("HH:mm")
+                                          .Name("In")
+                                          .Min(DateTime.Now)
+                                          .Max("4:00 PM")
+                                          .HtmlAttributes(new { style = "width:100%;" })
+                                            )
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-4">
+                @Html.Label("CompanyTrans", "Use Company Transport ?")
+                @(Html.Kendo().ComboBox()
+                                    .Name("CompTrans")
+                                    .DataTextField("Text")
+                                    .DataValueField("Value")
+                                    .Events(e => e.Change("CompTransChange"))
+                                    .BindTo(new List<SelectListItem>() {
+                                        new SelectListItem() {
+                                          Text = "YES", Value = "1"
+                                        },
+                                        new SelectListItem() {
+                                          Text = "NO", Value = "0"
+                                        }
+                                    })
+                                    .HtmlAttributes(new { style = "width:100%;" }))
+            </div>
+
+            <div class="col-md-4" id="driverTimeDiv">
+                @Html.Label("CompanyTrans", "Please Pick Your Time")
+                @(Html.Kendo().ComboBox()
+                                    .Name("CompTransTime")
+                                    .DataTextField("Text")
+                                    .DataValueField("Value")
+                                    .BindTo(new List<SelectListItem>() {
+                                        new SelectListItem() {
+                                          Text = "07:30", Value = "07:30"
+                                        },
+                                        new SelectListItem() {
+                                          Text = "09:30", Value = "09:30"
+                                        },
+                                        new SelectListItem() {
+                                          Text = "13:30", Value = "13:30"
+                                        }
+                                    })
+                                    .HtmlAttributes(new { style = "width:100%;" }))
+            </div>
+
+            <div class="col-md-4">
+                @Html.Label("StatusIs", "Status")
+                @(Html.Kendo().ComboBox()
+                                .Name("Status")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .BindTo(new List<SelectListItem>() {
+                                        new SelectListItem() {
+                                          Text = "PENDING", Value = "PENDING"
+                                        }
+                                    })
+                                .HtmlAttributes(new { style = "width:100%;" }))
+            </div>
+        </div>
+
+        <h3 style="margin-top:10px">Employee Details</h3>
+
+        <table id="detailsTable" class="table">
+            <thead>
+                <tr>
+                    <th style="width:35%">Employee</th>
+                    <th style="width:20%">Act. Out</th>
+                    <th style="width:15%">Act. In</th>
+                    <th style="width:10%"></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <a class="btn btn-info" id="addMore">Add Detail</a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button id="saveOrder" type="button" class="btn btn-primary">Save Exit Permit</button>
+    </div>
+</div>
+
+<div id="orderDetailsModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>*@
+                <h4 class="modal-title">Details</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <input type="hidden" id="detailId" />
+                        <div class="col-md-12">
+                            @Html.Label("Employee", "Employee :")
+                            @(Html.Kendo().TextBox()
+                                .Name("UseId")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-6">
+                            @Html.Label("ActTimeOut", "Act. Time Out :")
+                            @(Html.Kendo().TimePicker()
+                                          .Format("HH:mm")
+                                          .Name("ActOut")
+                                          .Min(DateTime.Now)
+                                          .Max("4:00 PM")
+                                          .HtmlAttributes(new { style = "width:100%;" })
+                                            )
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.Label("ActTimeIn", "Act. Time In :")
+                            @(Html.Kendo().TimePicker()
+                                          .Format("HH:mm")
+                                          .Name("ActIn")
+                                          .Min(DateTime.Now)
+                                          .Max("4:00 PM")
+                                          .HtmlAttributes(new { style = "width:100%;" })
+                                            )
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 col-lg-offset-9">
+                            <a id="addToList" class="btn btn-default">Add To List</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function CompTransChange()
+    {
+        var A = $("#CompTrans").val();
+        if (A == "1") {
+            $('#driverTimeDiv').show();
+        }
+        else {
+            $('#driverTimeDiv').hide();
+        }
+    }
+</script>
+<script>
+    $(function () {
+        var saveUrl = '@Url.Action("saveOrder", "ExitPermit", new { area=""})';
+        $("#addNewItem").click(function (e) {
+            e.preventDefault();
+            $("#MasterId").val('');
+            $("#EPNo").val('');
+            $("#UseDep").val('');
+            $("#PlantId").data("kendoComboBox").select(-1)
+            $("#Destination").val('');
+            $("#Out").val('');
+            $("#In").val('');
+            $("#CompTrans").data("kendoComboBox").select(1)
+            $("#CompTransTime").data("kendoComboBox").select(-1)
+            $("#Status").data("kendoComboBox").select(0)
+
+            $("#detailsTable tbody tr").remove();
+            $("#saveOrder").html("Save Exit Permit");
+            $('#newExitPermit').modal('show');
+            $('#driverTimeDiv').hide();
+
+        });
+    })
+    ///////////////////////////////////////////
+    $("#addMore").click(function (e) {
+        e.preventDefault();
+        $('#orderDetailsModal').modal('show');
+    });
+    ///////////////////////////////////////////
+        $("#addToList").click(function (e) {
+        e.preventDefault();
+        if ($.trim($("#UseId").val()) == "") return;
+        var UseId = $("#UseId").val(),
+            ActOut = $("#ActOut").val(),
+            ActIn = $("#ActIn").val(),
+            detailsTableBody = $("#detailsTable tbody");
+        var EPitem = '<tr><td>' + UseId + '</td><td>' + ActOut + '</td><td>' + ActIn + '</td><td>' + '</td><td><a data-itemId="0" href="#" class="deleteItem">Remove</a></td></tr>';
+        detailsTableBody.append(EPitem);
+        clearItem();
+    });
+    ///////////////////////////////////////////
+    $(document).on('click', 'a.deleteItem', function (e) {
+        e.preventDefault();
+        var $self = $(this);
+        if ($(this).attr('data-itemId') == "0") {
+            $(this).parents('tr').css("background-color", "#FF3700").fadeOut(800, function () {
+                $(this).remove();
+            });
+        } else {
+            $.when(deleteOrderItem($(this).attr('data-itemId'))).then(function (res) {
+                $self.parents('tr').css("background-color", "#FF3700").fadeOut(800, function () {
+                    $(this).remove();
+                });
+            }).fail(function (err) {
+            });
+        }
+    });
+    ///////////////////////////////////////////
+        function clearItem() {
+            $("#UseId").val('');
+            $("#ActOut").val('');
+            $("#ActIn").val('');
+        }
+    ///////////////////////////////////////////
+        function saveOrder(data) {
+            return $.ajax({
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                type: 'POST',
+                url: '@Url.Action("saveOrder", "ExitPermit", new { area=""})',
+                data: data
+            });
+        }
+        function getOrder(id) {
+            return $.ajax({
+                type: 'GET',
+                url: '@Url.Action("getSingleOrder", "Home", new { area = "" })',
+                data: "orderId=" + id
+            });
+        }
+        function getSingleOrderDetail(id) {
+            return $.ajax({
+                type: 'GET',
+                url: '@Url.Action("getSingleOrderDetail", "Home", new { area = "" })',
+                data: "id=" + id
+                });
+        }
+        function deleteOrderItem(id) {
+            return $.ajax({
+                type: 'POST',
+                url: '@Url.Action("deleteOrderItem", "Home", new { area = "" })',
+                data: "id=" + id
+                    });
+        }
+        $("#saveOrder").click(function (e) {
+            e.preventDefault();
+            var orderArr = [];
+            orderArr.length = 0;
+            $.each($("#detailsTable tbody tr"), function () {
+                orderArr.push({
+                    UseID: $(this).find('td:eq(0)').html(),
+                    ActOut: $(this).find('td:eq(1)').html(),
+                    ActIn: $(this).find('td:eq(2)').html()
+                });
+            });
+
+            var data = JSON.stringify({
+                UseDep: $("#UseDep").val(),
+                PlantId: $("#PlantId").val(),
+                Destination: $("#Destination").val(),
+                Date: $("#Date").val(),
+                Out: $("#Out").val(),
+                In: $("#In").val(),
+                CompTrans: $("#CompTrans").val(),
+                DriverTime: $("#DriverTime").val(),
+                Status: $("#Status").val(),
+                EPDetails: orderArr
+            });
+            $.when(saveOrder(data)).then(function (response)
+            {
+                console.log(response);
+            }).fail(function (err)
+            {
+                console.log(err);
+            });
+            $('#newExitPermit').modal('hide');
+        });
+        $(document).on("click", '.editItem', function (e) {
+            var data = table.row($(this).parents('tr')).data(); ///How to get it ?
+            //console.log(data);
+            e.preventDefault();
+            var id = data.masterId;
+            $.when(getOrder(id)).then(function (res) {
+                var detArr = [];
+                $("#UseDep").val(res.result.UseDep);
+                $("#PlantId").val(res.result.PlantId);
+                $("#Destination").val(res.result.Destination);
+                $("#Date").val(res.result.Date);
+                $("#Out").val(res.result.Out);
+                $("#In").val(res.result.In);
+                $("#CompTrans").val(res.result.CompTrans);
+                $("#CompTransTime").val(res.result.CompTransTime);
+                $("#Status").val(res.result.Status);
+                $("#MasterId").val(res.result.MasterId);
+                $.each(res.result.EPitem, function (i, v) {
+                    detArr.push('<tr><td>' + v.UseID + '</td><td>' + v.ActOut + '</td><td>' + v.ActOut + '</td><td>' + '</td><td><a data-itemId="' + v.DetailId + '" href="#" class="deleteItem">Delete</a> | <a href="#" data-itemId="' + v.DetailId + '" class="editDetail">Edit</a></td></tr>')
+                });
+                $("#detailsTable tbody").append(detArr);
+                $("#saveOrder").html("Save Update");
+                $('#newExitPermit').modal('show');
+
+            }).fail(function (err) {
+                console.log(err);
+            });
+        });
+    $(document).on("click", '.editDetail', function (e) {
+        e.preventDefault();
+        var id = $(this).attr("data-itemid");
+        $.when(getSingleOrderDetail(id)).then(function (res) {
+            var detArr = [],
+                data = res.result;
+            $("#detailId").val(data.DetailId);
+            $("#UseId").val(data.UseID);
+            $("#ActOut").val(data.ActOut);
+            $("#ActIn").val(data.ActIn);
+
+            $('#orderDetailsModal').modal('show');
+        }).fail(function (err) {
+            console.log(err);
+        });
+    });
+</script>

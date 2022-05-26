@@ -1,0 +1,112 @@
+﻿Success
+@{
+    ViewBag.Title = "UserAccessRight";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+<script>
+    function GenerateMLGrid() {
+        var BusFunc = $('#BusFuncList').val();
+        var ReceivePackageGrid = $("#MenuListGrid").DataTable({
+            destroy: true,
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "bLengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("ShowListofAccess", "User")",
+            "type": "POST",
+            "fnDrawCallback": function () {
+                $('.toggletest').bootstrapToggle();
+            },
+            "datatype": "json",
+            "data": function (d) {
+                return $.extend({}, d, {
+                    "BusFunc": BusFunc
+                });
+            }
+        },
+
+            "columnDefs":
+            [{
+            "targets": [0],
+            "visible": true,
+            "searchable": false
+            }],
+
+            "columns": [
+            {
+                "data": "No",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+            { "data": "MenuParent", "name": "MenuParent", "title": "MenuParent", "autoWidth": true },
+            { "data": "MenuCode", "name": "MenuCode", "title": "MenuCode", "autoWidth": true },
+            { "data": "MenuName", "name": "MenuName", "title": "MenuName", "autoWidth": true },
+            { "data": "MenuSeq", "name": "MenuSeq", "title": "MenuSeq", "autoWidth": true },
+            
+            {
+                "render": function (data, type, full, meta) {
+
+                    return '<input type="checkbox" data-width="100%" class="toggletest" id="chkDelegate" data-toggle="toggle" data-on="Active" data-off="Deactive" data-onstyle="success" data-offstyle="danger">'
+                }
+            },
+            
+            
+
+            ]
+    }
+                    );
+
+    }
+</script>
+<div class="row">
+    <div class="col-md-6">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        @Html.Label("BusFuncList", "Host Name : ")<br />
+                        <div class="k-content">
+                            @(Html.Kendo().DropDownList().Name("BusFuncList")
+                                            .DataTextField("Name").DataValueField("Id")
+                                            .HtmlAttributes(new { style = "width:100%", @class = "ShimanoTextBox" })
+                                            .Filter("contains").Events(e=> e.Change("GenerateMLGrid"))
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("ShowListBusfuncs", "User");
+                                                })
+                                                .ServerFiltering(false);
+                                            }).OptionLabel("Select Bussines Funtion"))
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="MenuListGrid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>MenuParent</th>
+                                        <th>MenuCode</th>
+                                        <th>MenuName</th>
+                                        <th>MenuSeq</th>
+                                        <th>isView</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

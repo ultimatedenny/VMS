@@ -1,0 +1,58 @@
+﻿@using VMS.Web.Models;
+<div>
+    @{
+        Html.Kendo().Window().Modal(true)
+        .Name("WindowHistoryVisitor")
+        .Title("Edit Column")
+        .Content(@<text>
+    <div class="row">
+        <div class="col-md-12">
+            @(Html.Kendo().Grid<LogHistory>().Name("HistoryListGrid")
+            .Columns(col =>
+            {
+                
+                col.Bound(p => p.HostId).Title("Host Name").Width(150).Locked();
+                col.Bound(p => p.DateIn).Title("Date In").Width(125).Locked();
+                col.Bound(p => p.VisitorType).Title("Visitor Type").Width(100);
+                col.Bound(p => p.TimeStart).Title("Time In").Width(125);
+                col.Bound(p => p.TimeEnd).Title("Time Out").Width(125);
+                col.Bound(p => p.UserIn).Title("User In").Width(150);
+                col.Bound(p => p.UserOut).Title("User Out").Width(150);
+                col.Bound(p => p.Remark).Title("Remark In").Width(200);
+                col.Bound(p => p.RemarkOut).Title("Remark Out").Width(200);
+            })
+            .AutoBind(false)
+            .Filterable().Events(e => e.DataBound("onDataBound"))
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            .HtmlAttributes(new { style = "height:650px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Model(model => model.Id(p => p.HostId))
+                .PageSize(20)
+                .Read(read => read.Action("GetHistoryVisitorByIdStoreProc", "NewVisitor").Data("GetVisitorIdParameter"))
+                )
+            )
+        </div>
+    </div>
+        </text>)
+        .Draggable()
+        .Resizable()
+        .Width(800)
+        .Actions(actions => actions.Close()).Visible(false).Render();
+    }
+</div>
+<script>
+    function GetVisitorIdParameter() {
+        return {
+            VisitorId : $("#detailId").val()
+        }
+    }
+    function GetHistoryVisitorById() {
+        $("#WindowHistoryVisitor").data("kendoWindow").open().center();
+        var VisitorName = $("#detailName").val()
+        $("#WindowHistoryVisitor").data("kendoWindow").title("History : " + VisitorName)
+        $("#HistoryListGrid").data("kendoGrid").dataSource.read()
+    }
+</script>

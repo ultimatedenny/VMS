@@ -1,0 +1,408 @@
+﻿@using VMS.Library
+@using VMS.Web.Models;
+@using VMS.Web.ViewModels; 
+
+@model CRUDUser
+@{
+    ViewBag.Title = "User List";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+
+<script>
+    $(document).ready(function () {
+        $(".k-button").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+        $(".k-header").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+    })
+    function GetParamPlant() {
+        return {
+            Plant: $("#searchPlant").val()
+        }
+    }
+</script>
+
+
+
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                User List
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-info" onclick="AddUser('0')"><i class="fa fa-plus"></i> Add User</button>
+                    </div>
+                    <div class="col-md-4 col-lg-offset-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="k-content">
+                                    @Html.Label("searchPlant", "Plant")
+                                    @Html.Kendo().DropDownList().Name("searchPlant").OptionLabel("Select Plant...").HtmlAttributes(new { style = "width: 100%", @class = "" }).DataTextField("plantName").DataValueField("plantId").DataSource(source => { source.Read(read => { read.Action("getPlantList", "MasterData"); }); }).Value(Session["UsePlant"].ToString()).Events(e=>e.Change("RetrieveData"))
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <button class="btn bg-navy pull-right" onclick="fnImportUserFromAD()"><i class="fa fa-download"></i> Import From Active Directory</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <br />
+
+                <br />
+
+                <div class="row">
+                    <div class="col-md-12">
+                        @(Html.Kendo().Grid<User>().Name("UserGrids")
+                                    .Columns(col =>
+                                    {
+                                        col.Bound(p => p.UseID).Title("UserID");
+                                        col.Bound(p => p.UseNam).Title("User Name");
+                                        col.Bound(p => p.UseDep).Title("Department");
+                                        col.Bound(p => p.UseLev).Title("Level");
+                                        col.Bound(p => p.UseEmail).Title("Email");
+                                        col.Bound(p => p.UseTel).Title("Ext No");
+                                        col.Bound(p => p.BusFunc).Title("Business Function");
+                                        col.Bound(p => p.UsePlant).Title("Plant");
+                                        col.Bound(p => p.isActiveAcc).ClientTemplate("#=GetToggleUser(data.UseID, data.isActiveAcc)#");
+                                        col.Bound(p => p.ApprovalGroup).Title("ApprovalGroup");
+                                        col.Command(command =>
+                                        {
+                                            command.Custom("Edit").Click("EditUser").IconClass("k-icon k-i-table-properties").Text("").HtmlAttributes(new { style="color:white"});
+                                        }).Title("Action");
+
+                                    })
+                                    .AutoBind(true)
+                                    .Filterable().Events(e => e.DataBound("onDataBound"))
+                                    .Pageable()
+                                    .Sortable()
+                                    .Scrollable()
+                                    .HtmlAttributes(new { style = "height:600px;" })
+                                    .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .Model(model => model.Id(p => p.UseID))
+                                        .PageSize(20)
+                                        .Read(read => read.Action("GetUsersList", "User").Data("GetParamPlant"))
+                                        )
+                        )
+                    </div>
+                </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="modal fade" id="modalEdit">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Ajax.BeginForm("PostUsers", "User",
+                            new AjaxOptions
+                            {
+                                OnSuccess = "onSuccess",
+                                OnFailure = "onFailure",
+                                OnBegin = "BeginProcess",
+                                LoadingElementId = "progress"
+                            }))
+            {
+                <div class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="title">AddEdit Visitor</h3>
+                </div>
+                <div class="modal-body" id="myModalBodyDiv1">
+                    <div class="row">
+                        @Html.HiddenFor(m => m.OldData.UseID)
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseID, "User ID: ")<br />
+                                @(Html.Kendo()
+                                .TextBoxFor(model => model.NewData.UseID)
+                                .HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Full Name" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseNam, "User Name: ")<br />
+                                @(Html.Kendo()
+                                .TextBoxFor(model => model.NewData.UseNam)
+                                .HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the User Name" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseLev, "User Level : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NewData.UseLev)
+                                              .Filter("contains")
+                                              .Placeholder("Select User Level...")
+                                              .DataTextField("Cod")
+                                              .DataValueField("CodAbb")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetUserLevelCodLst", "MasterData");
+                                                    });
+                                                })
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UsePlant, "Plant : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NewData.UsePlant)
+                                              .Filter("contains")
+                                              .Placeholder("Select Plant...")
+                                              .DataTextField("plantName")
+                                              .DataValueField("plantId")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("getPlantList", "MasterData");
+                                                    });
+                                                }).Events(e => e.Change("PopulateDepartment"))
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseDep, "Department : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NewData.UseDep)
+                                              .Filter("contains")
+                                              .Placeholder("Select Department...")
+                                              .DataTextField("DeptName")
+                                              .DataValueField("Dept")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetDepartmentforDDList", "MasterData").Data("GetPlants");
+                                                    });
+                                                }).AutoBind(false)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.BusFunc, "BusFunc : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NewData.BusFunc)
+                                              .Filter("contains")
+                                              .Placeholder("Select BusFunc...")
+                                              .DataTextField("Name")
+                                              .DataValueField("Id")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetBusfuncsDL", "User");
+                                                    });
+                                                })
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseEmail, "Email: ")<br />
+                                @(Html.Kendo()
+                                        .TextBoxFor(model => model.NewData.UseEmail)
+                                        .HtmlAttributes(new { @class = "form-control", style = "width:100%" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.UseTel, "Ext No: ")<br />
+                                @(Html.Kendo()
+                                        .TextBoxFor(model => model.NewData.UseTel)
+                                        .HtmlAttributes(new { @class = "form-control", style = "width:100%" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NewData.ApprovalGroup, "Approval Group : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NewData.ApprovalGroup)
+                                              .Filter("contains")
+                                              .Placeholder("Select ApprovalGroup...")
+                                              .DataTextField("Group")
+                                              .DataValueField("Group")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetApprovalGroupsDL", "User");
+                                                    });
+                                                })
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnSubmit" class="btn btn-success">
+                        <span id="btnLabel">Save</span>
+                    </button>
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+<script id="Grid">
+    function RetrieveData() {
+        Sys.LoadingShow();
+        $('#UserGrids').data('kendoGrid').dataSource.read()
+    }
+    function AddUser(e) {
+        PopulateData('')
+    }
+    function EditUser(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        DP.Ajax({ UseID: dataItem.UseID }, "@Url.Action("GetUserDetail", "User")", PopulateData)
+    }
+    function onDataBound(e) {
+        Sys.DialogClose()
+        $('.chk-1').bootstrapToggle({
+            on: 'Enabled',
+            off: 'Disabled'
+        });
+    }
+    function GetToggleUser(UseID, isActive) {
+        var data = "";
+        if (isActive) {
+            data = "checked";
+        }
+        return '<input id="Id' + UseID + '" class="chk-1" type="checkbox" data-height="20" data-toggle="toggle" ' + data + ' onchange="ChangeStatus(' + "'" + UseID + "'" + ')">';
+    }
+</script>
+<script>
+    function PopulateData(data) {
+        $("#titleEdit").html((data != "") ? "Edit " + data.UserName : "Add New")
+        $("#@Html.IdFor(u => u.NewData.UseID)").val((data != "") ? data.UseID : "")
+        $("#@Html.IdFor(u => u.OldData.UseID)").val((data != "") ? data.UseID : "0")
+        $("#@Html.IdFor(u => u.NewData.UseNam)").val((data != "") ? data.UseNam : "")
+        $("#@Html.IdFor(u => u.NewData.UsePlant)").data("kendoComboBox").value((data != "") ? data.UsePlant : "")
+        $("#@Html.IdFor(u => u.NewData.UseLev)").data("kendoComboBox").value((data != "") ? data.UseLev : "")
+        $("#@Html.IdFor(u => u.NewData.UseDep)").data("kendoComboBox").value((data != "") ? data.UseDep : "")
+        $("#@Html.IdFor(u => u.NewData.BusFunc)").data("kendoComboBox").value((data != "") ? data.BusFunc : "")
+        $("#@Html.IdFor(u => u.NewData.UseEmail)").val((data != "") ? data.UseEmail : "")
+        $("#@Html.IdFor(u => u.NewData.UseTel)").val((data != "") ? data.UseTel : "")
+        $("#modalEdit").modal({
+            backdrop: "static",
+            keyboard: false,
+            show: true
+        });
+
+    }
+</script>
+
+
+<script>
+    function BeginProcess() {
+        Sys.LoadingShow();
+    }
+    function onSuccess(data) {
+        Sys.DialogClose(true);
+        if (data.Success) {
+            RetrieveData();
+            toastr.success(data.message, 'Success!');
+        } else {
+            toastr.warning(data.message, 'Warning!')
+        }
+
+    }
+    
+</script>
+<script>
+    function fnImportUserFromAD() {
+        var Plant = $("#searchPlant").val();
+        DP.AJaxAll({ Plant: Plant }, "@Url.Action("GetUserFromAD", "User")", function (data) {
+            if (data.Success) {
+                toastr.success("Success!", data.Message)
+                RetrieveData();
+                GetComparDiffDept();
+            }
+            else {
+                ShiMessage.error("Error!", data.Message)
+            }
+        })
+    }
+    function GetComparDiffDept() {
+        window.location.href = "@Url.Action("GetComparDiffDept", "User")"
+    }
+    function GetPlants() {
+        return {
+            Plant: $("#@Html.IdFor(m=>m.NewData.UsePlant)").val()
+        }
+    }
+    function PopulateDepartment() {
+        $("#@Html.IdFor(m=>m.NewData.UseDep)").data("kendoComboBox").dataSource.read();
+    }
+</script>
+<script>
+    function ChangeStatus(UseID) {
+        DP.AJaxAll(
+            {
+                UseID:UseID
+            }
+            , "@Url.Action("PostChangeUserStatus","User")"
+            , function (data) {
+                if (data.Success) {
+                    toastr.success("Success!", data.Message)
+                }
+                else {
+                    ShiMessage.error("Error!", data.Message)
+                }
+            })
+    }
+    function onFailure() {
+        ShiMessage.error("ERROR","")
+    }
+</script>
+

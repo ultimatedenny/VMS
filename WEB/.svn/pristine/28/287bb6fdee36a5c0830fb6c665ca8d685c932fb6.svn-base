@@ -1,0 +1,529 @@
+﻿@using VMS.Web.Models
+@model VMS.Web.Models.Visitor
+@{
+    ViewBag.Title = "Visitor";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<style scoped>
+    .k-textboxlarge {
+        height: 40px;
+        width: 100%;
+        font-size: 20px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+</style>
+
+@*<script>
+    $(document).ready(function () {
+        ShowVisitor();
+    })
+</script>*@
+<script>
+    $(document).ready(function () {
+        $(".k-button").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+        $(".k-header").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+    })
+</script>
+
+<script>
+    function ShowVisitor() {
+        var Name = $('#txtSearch').val();
+        var table = $("#tableGrid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "ajax": {
+                "url": "@Url.Action("GetVisitorDatatables", "MasterData")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "Name": Name
+                    });
+                }
+            },
+            "fnDrawCallback": function (full) {
+                $('.chk-1').bootstrapToggle({
+                    on: 'Enabled',
+                    off: 'Disabled'
+                });
+            },
+            "rowCallback": function (row, data, index) {
+                if (/[a-zA-Z]/.test(data["VisitorCardNo"])) {
+                    $(row).find('td:eq(1)').css('background-color', '#FEC007');
+                    $(row).find('td:eq(1)').css('color', 'black'); 
+                }
+                else if (data["VisitorCardNo"] == "") {
+                    $(row).find('td:eq(1)').css('background-color', '#e1e3e5');
+                    $(row).find('td:eq(1)').css('color', 'black');
+
+                }
+                else {
+                    $(row).find('td:eq(1)').css('background-color', '#17A2B8');
+                    $(row).find('td:eq(1)').css('color', 'white');
+
+                }
+            },
+
+                "columnDefs":
+                [{
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                }],
+
+
+    "columns": [
+        
+        { "data": "id", "name": "id", "autoWidth": true },
+        {
+            "data": "No",
+            render: function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1;
+            }
+        },
+        
+        { "data": "FullName", "name": "FullName", "title": "Full Name", "autoWidth": true },
+        { "data": "Company", "name": "Company", "title": "Company Name", "autoWidth": true },
+        { "data": "JobDesc", "name": "JobDesc", "title": "Job Title", "autoWidth": true },
+        { "data": "Phone", "name": "Phone", "title": "Phone", "autoWidth": true },
+        { "data": "Email", "name": "Email", "title": "Email", "autoWidth": true },
+        {
+            "render": function (data, type, full, meta) {
+                var data = "";
+                if (full.isActive) {
+                    data = "checked";
+                }
+                return '<input id="Id' + full.id + '" class="chk-1" type="checkbox" data-toggle="toggle" ' + data + ' onchange="ChangeStatus(' + "'Visitor','Id'," + "'" + full.id + "'" + ')">';
+            }
+        },
+         {
+             "render": function (data, type, full, meta) {
+                 return '<button class="btn btn-info"  onclick="AddEditVisitor(' + full.id + ')"><i class="fa fa-1x fa-edit"></i> Edit</button> - <button class="btn btn-success"  onclick="EditCardId(' + full.id + ", '" + full.VisitorCardNo +"'"+ ')"><i class="fa fa-1x fa-edit"></i> Change Id Card</button>';
+             }
+         },
+
+    ]
+    }
+        );
+    }
+</script>
+
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Visitor List
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-info" onclick="PopulateDataAdd()"><i class="fa fa-plus"></i> Add Visitor</button>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-4">
+                        @Html.Label("txtSearch", "Search By Visitor Name or Company")
+                        @Html.Kendo().TextBox().Name("txtSearch").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "RetrieveData()" })
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        @(Html.Kendo().Grid<Visitor>().Name("VisitorGrid")
+            .Columns(col =>
+            {
+                col.Bound(p => p.FullName).Title("Full Name");
+                col.Bound(p => p.Company).Title("Company");
+                col.Bound(p => p.JobDesc).Title("Job Title");
+                col.Bound(p => p.Email).Title("Email");
+                col.Bound(p => p.Phone).Title("Phone");               
+                col.Bound(p => p.VehicleNo).Title("Vehicle No");
+                col.Bound(p => p.isActive).ClientTemplate("#=GetToggleUser(id, isActive)#");
+                col.Command(command =>
+                {
+                    command.Custom("Edit").Click("EditVisitor").IconClass("k-icon k-i-table-properties").Text("").HtmlAttributes(new { style = "color:white" });
+                    command.Custom("Change").Click("ChangeCardVisitor").IconClass("k-icon k-i-table-properties").Text("").HtmlAttributes(new { style = "color:white" });
+                }).Title("Action");
+
+            })
+            .AutoBind(true)
+            .Filterable().Events(e => e.DataBound("onDataBound"))
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            .HtmlAttributes(new { style = "height:600px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Model(model => model.Id(p => p.id))
+                .PageSize(20)
+                .Read(read => read.Action("GetVisitorMasterData", "MasterData").Data("fnGetParameterVisitor"))
+                )
+                        )
+                    </div>
+                </div>
+                @*<div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="tableGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>No</th>
+                                        <th>FullName</th>
+                                        <th>Company Name</th>
+                                        <th>JobDesc</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>Active</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>*@
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalEdit">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Ajax.BeginForm("SaveVisitor", "Visitor",
+                            new AjaxOptions
+                            {
+                                OnSuccess = "SuccessSave",
+                                OnFailure = "FailureSave",
+                                LoadingElementId = "progress",
+                                OnBegin = "BeginSave"
+                            }))
+            {
+                <div class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="title">AddEdit Visitor</h3>
+                </div>
+                <div class="modal-body" id="myModalBodyDiv1">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.HiddenFor(m => m.id)
+                                @Html.LabelFor(model => model.FullName, "Full Name: ")<br />
+                                @(Html.Kendo()
+.TextBoxFor(model => model.FullName)
+.HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Full Name" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.Company, "Company: ")<br />
+                                @(Html.Kendo()
+.AutoCompleteFor(m => m.Company).Filter("contains").MinLength(2).DataTextField("Company").Events(e => e.Change("CheckNames"))
+.HtmlAttributes(new { @class = "ShimanoTextbox", style = "width:100%;", required = "required", data_required_msg = "Please Fill the Company" }).DataSource(source =>
+{
+    source.Read(read => { read.Action("PopulateCompanyVendor", "Visitor").Data("filterData"); }).ServerFiltering(true);
+}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.JobDesc, "Job Title: ")<br />
+                                @(Html.Kendo()
+.TextBoxFor(model => model.JobDesc)
+.HtmlAttributes(new { @class = "form-control", style = "width:100%"}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.Email, "Email: ")<br />
+                                @(Html.Kendo()
+.TextBoxFor(model => model.Email)
+.HtmlAttributes(new { @class = "form-control", style = "width:100%"}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.Phone, "Phone: ")<br />
+                                @(Html.Kendo()
+.TextBoxFor(model => model.Phone)
+.HtmlAttributes(new { @class = "form-control", style = "width:100%"}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(m => m.VehicleNo, "VehicleNo : ")<br />
+                                @(Html.Kendo()
+        .TextBoxFor(m => m.VehicleNo)
+        .HtmlAttributes(new { @class = "form-control", style = "width:100%" }))
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button id="btnSubmit" class="btn btn-success">
+                        <span id="btnLabel">Save</span>
+                    </button>
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade" id="modalRegisterCard">
+    <div class="modal-dialog  modal-lg ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">Register Card Visitor</h3>
+            </div>
+            <div class="modal-body" id="myModalBodyDiv1">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label> Card Before : </label>
+                            <label id="CardBefore"></label><br />
+                            @Html.Hidden("IdRegister")
+                            @Html.Label("CardRegister", "TAP NFC Card : ")
+                            @(Html.Kendo()
+                                .TextBox()
+                                .Name("CardRegister").HtmlAttributes(new { @class = "form-control k-textboxlarge text-center" }))
+
+                            @*@Html.TextBox("searchName", "", new { @class = "form-control ShimanoBlackBox", required = "required" })*@
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function RetrieveData() {
+        $("#VisitorGrid").data("kendoGrid").dataSource.read()
+    }
+    function fnGetParameterVisitor() {
+        return {
+            Name: $("#txtSearch").val()
+        }
+    }
+    $('#CardRegister').on('keypress', function (e) {
+        if (e.which === 13) {
+            ShowLoading(true, "Card Number")
+            $(this).attr("disabled", "disabled");
+            var id = $('#IdRegister').val();
+            var CardId = $('#CardRegister').val();
+            saveCardRegister(id, CardId);
+            $(this).removeAttr("disabled");
+        }
+    });
+    function onDataBound(e) {
+        Sys.DialogClose()
+        $('.chk-1').bootstrapToggle({
+            on: 'Enabled',
+            off: 'Disabled'
+        });
+    }
+    function ChangeCardVisitor(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $("#CardBefore").html(dataItem.VisitorCardNo);
+        $("#CardRegister").val("")
+        $("#modalRegisterCard").modal("show");
+        $("#IdRegister").val(dataItem.id);
+        $("#CardRegister").focus()
+    }
+
+    function saveCardRegister(id, CardId) {
+        DP.AJaxAll({ id: id, CardId: CardId },
+           '@Url.Action("PostSaveCardRegister", "Visitor")', function (data) {
+               if (data.Success === true) {
+                   toastr.success(data.Message, "Success!");
+                   $("#modalRegisterCard").modal("hide");
+                   RetrieveData()
+               }
+               else {
+                   ShiMessage.error("Warning!", data.Message)
+               }
+           })
+    }
+</script>
+
+
+<script>
+    function EditVisitor(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        DP.AJaxAll({ Id: dataItem.id }, "@Url.Action("GetVisitorDetail", "Visitor")", PopulateDataEdit)
+    }
+    function PopulateDataEdit(data) {
+        if (data.Success) {
+            $("#modalEdit").modal("show");
+            $("#title").html("Edit Visitor");
+            $("#btnLabel").html("Update");
+            $("#@Html.IdFor(model => model.FullName)").val(data.data.FullName);
+            $("#@Html.IdFor(model => model.Company)").val(data.data.Company);
+            $("#@Html.IdFor(model => model.JobDesc)").val(data.data.JobDesc);
+            $("#@Html.IdFor(model => model.Phone)").val(data.data.Phone);
+            $("#@Html.IdFor(model => model.Email)").val(data.data.Email);
+            $("#@Html.IdFor(model => model.id)").val(data.data.id);
+            $("#@Html.IdFor(model => model.VehicleNo)").val(data.data.VehicleNo);
+        }
+        else {
+            ShiMessage.error("Error", data.Message)
+        }
+    }
+    function GetToggleUser(Id, isActive) {
+        var data = "";
+        if (isActive) {
+            data = "checked";
+        }
+        return '<input id="Id' + Id + '" class="chk-1" type="checkbox" data-height="20" data-toggle="toggle" ' + data + ' onchange="ChangeStatus(' + "'Visitor','Id'," + "'" + Id + "'" + ')">';
+    }
+    function PopulateDataAdd() {
+        $("#title").html("Add Visitor");
+        $("#@Html.IdFor(model => model.id)").val(0);
+        $("#@Html.IdFor(model => model.FullName)").val("");
+        $("#@Html.IdFor(model => model.Company)").val("");
+        $("#@Html.IdFor(model => model.JobDesc)").val("");
+        $("#@Html.IdFor(model => model.Phone)").val("");
+        $("#@Html.IdFor(model => model.Email)").val("");
+        $("#@Html.IdFor(model => model.VehicleNo)").val("");
+        $("#modalEdit").modal("show");
+    }
+    @*function AddEditVisitor(Id) {
+        $("#modalEdit").modal("show");
+        if (Id > 0) {
+            $("#title").html("Edit Visitor");
+            $("#btnLabel").html("Update");
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetVisitorDetail", "Visitor")',
+                data: { Id: Id },
+                success: function (data) {
+                    $("#@Html.IdFor(model => model.FullName)").val(data.FullName);
+                    $("#@Html.IdFor(model => model.Company)").val(data.Company);
+                    $("#@Html.IdFor(model => model.JobDesc)").val(data.JobDesc);
+                    $("#@Html.IdFor(model => model.Phone)").val(data.Phone);
+                    $("#@Html.IdFor(model => model.Email)").val(data.Email);
+                    $("#@Html.IdFor(model => model.id)").val(Id);
+                }
+            });
+        }
+        else {
+            $("#title").html("Add Visitor");
+            $("#@Html.IdFor(model => model.id)").val(0);
+            $("#@Html.IdFor(model => model.FullName)").val("");
+            $("#@Html.IdFor(model => model.Company)").val("");
+            $("#@Html.IdFor(model => model.JobDesc)").val("");
+            $("#@Html.IdFor(model => model.Phone)").val("");
+            $("#@Html.IdFor(model => model.Email)").val("");
+        }
+    }*@
+    function filterData() {
+        return {
+            text: $("#@Html.IdFor(m => m.Company)").val()
+        };
+    }
+    $(document).ready(function () {
+        $('#@Html.IdFor(m=>m.Phone)').keyup(function () {
+            var numbers = $(this).val();
+            $(this).val(numbers.replace(/\D/, ''));
+        });
+    });
+</script>
+
+<script>
+        function CheckNames() {
+            var Name = $("#@Html.IdFor(m => m.FullName)").val();
+            var Company = $("#@Html.IdFor(m => m.Company)").val();
+            var JobDesc = $("#@Html.IdFor(m => m.JobDesc)").val();
+            $.ajax({
+                url: '@Url.Action("CheckVisitorName", "Visitor")',
+                cache: false,
+                type: "POST",
+                data: { Name: Name, Company: Company, JobDesc:JobDesc },
+                success: function (data) {
+                    if (!data.Success) {
+                        toastr.success("Name is Available!");
+                        $("#btnSubmit").prop("disabled", false);
+                    }
+                    else {
+                        toastr.warning("This Name has been taken by " + data.Message);
+                        $("#btnSubmit").prop("disabled", true);
+                        $("#@Html.IdFor(m => m.FullName)").focus()
+
+                    }
+
+                },
+                error: function (data) {
+                    toastr.error("Please Call IT");
+                }
+            });
+        }
+</script>
+<script>
+    function BeginSave() {
+        Sys.LoadingShow();
+    }
+    function SuccessSave(data) {
+        if (data.Success) {
+            Sys.DialogClose(true);
+            RetrieveData()
+        }
+        else {
+            ShiMessage.error("Failed", data.Message)
+        }
+    }
+    function FailureSave(data) {
+        Sys.DialogClose();
+        ShiMessage.error("Failed", data.Message)
+    }
+</script>
+@{
+    Html.RenderPartial("_MDLoader");
+}
+

@@ -1,0 +1,341 @@
+﻿@model VMS.Web.Models.DisclaimerArea
+@{
+    ViewBag.Title = "Disclaimer Area";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<script src="~/Scripts/sweetalert2.js"></script>
+
+<script>
+    $(document).ready(function () {
+        ShowDisclaimerArea();
+        var use = '@Session["UseID"]'
+        if (use == "") {
+            window.location.href = "@Url.Action("Logout", "Home")"
+        }
+});
+</script>
+
+
+<script>
+    function ShowDisclaimerArea() {
+        _ID = "";
+        var Search = $('#txtSearch').val(); //AreaName for Model/MasterData.cs
+        var table = $("#tableGrid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "ajax": {
+                "url": "@Url.Action("GetDisclaimerAreaDatatables", "MasterData")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "Search": Search
+                    });
+                }
+            },
+
+            "columnDefs":
+                [{
+                    "targets": [0],
+                    "visible": true,
+                    "searchable": false
+                }],
+
+            "columns": [
+                {
+                    "data": "No",
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                { "data": "PlantName" },
+                { "data": "DisclaimerCategory" },
+                { "data": "AreaId" },
+                { "data": "AreaName" },
+                { "data": "UpdateBy" },
+                { "data": "UpdateAt" },
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-warning"  onclick="AddDisclaimer(`' + full.ID + '`,`' + full.Plant + '`,`' + full.DisclaimerCategory + '`,`' + full.AreaId + '`)"><i class="fa fa-1x fa-edit"></i></button> <button class="btn btn-danger"  onclick="DisclaimerDelete(`' + full.ID + '`)"><i class="fa fa-1x fa-trash"></i></button>';
+                    }
+                },
+            ]
+        });
+    }
+</script>
+
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Disclaimer Area
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="col-md-6">
+                            <button class="btn btn-info" onclick="AddDisclaimer()"><i class="fa fa-plus"></i> Set New</button>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-4">
+                        @Html.Label("txtSearch", "Search")
+                        @Html.Kendo().TextBox().Name("txtSearch").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "ShowDisclaimerArea()" })
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-responsive" style="width:100%; margin:0 auto;">
+                            <table id="tableGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Plant</th>
+                                        <th>Disclaimer Category</th>
+                                        <th>Area</th>
+                                        <th>Area Name</th>
+                                        <th>Last Update</th>
+                                        <th>Updated By</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalEdit">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">AddEdit</h3>
+            </div>
+            <div class="modal-body" id="myModalBodyDiv1">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.Plant, "Plant : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.Plant)
+                              .Filter("contains")
+                              .Placeholder("Select Plant...")
+                              .DataTextField("plantName")
+                              .DataValueField("plantId")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getPlantList", "MasterData");
+                                  });
+                              }).Events(e => e.Change("PopulateArea"))
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.DisclaimerCategory, "Disclaimer Category : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.DisclaimerCategory)
+                              .Filter("contains")
+                              .Placeholder("Select Type...")
+                              .DataTextField("Name")
+                              .DataValueField("Id")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getDisclaimerCategory", "MasterData").Data("getddlPlantValue");
+                                  });
+                              })
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.AreaName, "Area : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.AreaName)
+                              .Filter("contains")
+                              .Placeholder("Select Type...")
+                              .DataTextField("Name")
+                              .DataValueField("Id")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getArea", "MasterData").Data("getddlPlantValue");
+                                  });
+                              })
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnSubmit" class="btn btn-success" onclick="saveDisclaimerArea()">
+                    <span id="btnLabel">Save</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    function getddlPlantValue() {
+        return {
+            Plant: $("#@Html.IdFor(model => model.Plant)").val()
+        }
+    }
+
+    function PopulateArea() {
+        $("#@Html.IdFor(model => model.DisclaimerCategory)").data("kendoComboBox").select(-1)
+        $("#@Html.IdFor(model => model.AreaName)").data("kendoComboBox").select(-1)
+
+        $("#@Html.IdFor(model => model.DisclaimerCategory)").data("kendoComboBox").dataSource.read();
+        $("#@Html.IdFor(model => model.AreaName)").data("kendoComboBox").dataSource.read();
+    }
+
+    var _ID = "";
+    function AddDisclaimer(ID,Plant, Category, Area) {
+        if (ID == null)
+            ID = "";
+
+        $("#modalEdit").modal("show");
+        if (ID != "") {
+            _ID = ID;
+            $("#title").html("Edit Disclaimer Area");
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").value(Plant);
+            $("#@Html.IdFor(model => model.DisclaimerCategory)").data("kendoComboBox").value(Category)
+            $("#@Html.IdFor(model => model.AreaName)").data("kendoComboBox").value(Area)
+        }
+        else {
+            $("#title").html("Set Disclaimer Area");
+            _ID = "";
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").select(-1)
+            $("#@Html.IdFor(model => model.DisclaimerCategory)").data("kendoComboBox").select(-1)
+            $("#@Html.IdFor(model => model.AreaName)").data("kendoComboBox").select(-1)
+        }
+
+    }
+
+    function saveDisclaimerArea() {
+
+        var Plant = $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").value();
+        var Category = $("#@Html.IdFor(model => model.DisclaimerCategory)").data("kendoComboBox").value();
+        var Area = $("#@Html.IdFor(model => model.AreaName)").data("kendoComboBox").value();
+
+        if (Plant == "") {
+            toastr.error("Please select Plant")
+        } else if (Category == "") {
+            toastr.error("Please input Disclaimer Category")
+        } else if (Area == "" || Area == null) {
+            toastr.error("Please select Area")
+        } else {
+
+            $("#btnSubmit").attr("disabled", true);
+                $.ajax({
+                    url: '@Url.Action("SaveDisclaimerArea", "MasterData")',
+                    method: "POST",
+                    dataType: "JSON",
+                    data: {
+                        ID: _ID,
+                        Plant: Plant,
+                        Category: Category,
+                        Area: Area,
+                    },
+                    success: function (j) {
+                        if (j.Result == true) {
+                            toastr[j.Data[0][0].Status](j.Data[0][0].Message)
+                            if (j.Data[0][0].Status == "success") {
+                                ShowDisclaimerArea();
+                            }
+                        }
+                        else {
+                            toastr.error("Failed, Please contact IT")
+                        }
+                        $("#btnSubmit").attr("disabled", false);
+                        $("#modalEdit").modal("hide");
+                    },
+                    error: function (xhr, error, text) {
+                        toastr.error("Failed Query, Please contact IT")
+                        $("#btnSubmit").attr("disabled", false);
+                    }
+                });
+        }
+    }
+
+    function DisclaimerDelete(id) {
+        Swal.fire({
+            title: 'Are you sure!',
+            text: "Do you want to detele this item?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.value == true) {
+                if (id != null && id != '') {
+                    $.ajax({
+                        url: '@Url.Action("DeleteDisclaimerArea", "MasterData")',
+                        method: "POST",
+                        dataType: "JSON",
+                        data: {
+                            ID: id,
+                        },
+                        success: function (j) {
+                            if (j.Result == true) {
+                                toastr.success(j.Data[0][0].Message)
+                                ShowDisclaimerArea();
+                            }
+                            else {
+                                toastr.error("Delete Fail, Please contact IT")
+                            }
+                        },
+                        error: function (xhr, error, text) {
+                            toastr.error("Failed Query Delete, Please contact IT")
+                        }
+                    });
+                } else {
+                    toastr.error("ID Not Found, Please reload this page or contact IT")
+                }
+            }
+        })
+    }
+
+</script>
+@{
+    Html.RenderPartial("_MDLoader");
+}
+

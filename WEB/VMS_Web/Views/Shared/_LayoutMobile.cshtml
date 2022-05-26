@@ -1,0 +1,191 @@
+﻿@using VMS.Library;
+@using System.Configuration;
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Css")
+    @Styles.Render("~/kendoCSS")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/kendoJS")
+    @*@Scripts.Render("~/Jquery")*@
+    @Scripts.Render("~/jQueryVal")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/Js")
+    @Scripts.Render("~/Scripts/prototype.js")
+    @Scripts.Render("~/Scripts/ShimanoObject.js")
+    @Scripts.Render("~/Scripts/prototype.js")
+    @Scripts.Render("~/Scripts/ShiMessage.js")
+    <style>
+        html * {
+            font-family: Quicksand;
+        }
+
+        .ShimanoWhite {
+            background-color: white;
+            color: black;
+        }
+
+        .ShimanoWhiteBorder {
+            border: outset 8px #808080;
+        }
+
+        .ShimanoBox {
+            background-color: white;
+            color: black;
+            box-shadow: 3px 3px 3px grey;
+            border-top: 1px;
+        }
+
+        .ShimanoTextBox {
+            border-radius: 10px;
+        }
+    </style>
+
+    <style>
+        .ShimanoBlackBox {
+            background-color: #323232;
+            color: white;
+        }
+
+        .ShimanoBorder {
+            border: outset 8px #3c8dbc;
+        }
+    </style>
+</head>
+
+<body class="hold-transition skin-blue layout-top-nav">
+    <div class="wrapper">
+        @*<header class="main-header">
+                <nav class="navbar navbar-static-top" style="background-color:  @System.Configuration.ConfigurationManager.AppSettings["BGMenuLive"]">
+                    <div class="container">
+                        <div class="navbar-header" >
+                            <a href="@Url.Action("Index","Home")" class="navbar-brand"><img src="@Url.Content("~/Content/Images/shimanoLogo.png")" height="25" /></a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                        </div>
+                         Collect the nav links, forms, and other content for toggling
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="@Url.Action("Index","MROD")">MROD <span class="sr-only">(current)</span></a></li>
+                                <li><a href="@Url.Action("Index","FROD")">FROD</a></li>
+                                <li><a href="@Url.Action("Index","PROD")">PROD</a></li>
+                                <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
+                                        <ul class="dropdown-menu" role="menu">
+                                            <li><a href="#">Action</a></li>
+                                            <li><a href="#">Another action</a></li>
+                                            <li><a href="#">Something else here</a></li>
+                                            <li class="divider"></li>
+                                            <li><a href="#">Separated link</a></li>
+                                            <li class="divider"></li>
+                                            <li><a href="#">One more separated link</a></li>
+                                        </ul>
+                                    </li>
+                            </ul>
+                        </div>
+                         /.navbar-collapse
+                         Navbar Right Menu
+                        <div class="navbar-custom-menu">
+                            <ul class="nav navbar-nav">
+                                 User Account Menu
+                                <li class="dropdown user user-menu">
+                                     Menu Toggle Button
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                         The user image in the navbar
+                                        <i class="fa fa-building"></i>
+                                         hidden-xs hides the username on small devices so only the image appears.
+                                        <span class="hidden-xs">VisiBukku</span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                         User image
+                                        <li class="user-header" style="background-color:@System.Configuration.ConfigurationManager.AppSettings["BGMenuLive"];">
+                                            <i class="fa fa-2x fa-user"></i>
+
+                                            <p>
+                                                @if (Sessions.GetUserName() != null)
+                                                {
+                                                    @Sessions.GetUserName()
+                                                    <small>@Session["BusFunc"].ToString()</small>
+                                                }
+                                                else
+                                                {
+                                                    <small>NONE</small>
+                                                }
+                                                @Session["UseNam"] - @Session["UseDep"]
+
+                                            </p>
+                                        </li>
+                                         Menu Body
+                                         Menu Footer
+                                        <li class="user-footer">
+                                            <div class="pull-left">
+
+                                            </div>
+                                            <div class="pull-right">
+                                                @if (Sessions.GetUserName() != null)
+                                                {
+                                                    <a href="@Url.Action("Logout", "User")" class="btn btn-default btn-flat">Sign out</a>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@Url.Action("Logout", "Home")" class="btn btn-default btn-flat">Sign In</a>
+                                                }
+
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                         /.navbar-custom-menu
+                    </div>
+                     /.container-fluid
+                </nav>
+            </header>*@
+        <!-- Full Width Column -->
+        <div class="content-wrapper" style="background-color:#FFFFFF">
+            <!-- Main content -->
+            <section class="content" style="background-color:#FFFFFF">
+                @RenderBody()
+
+                <!-- /.box -->
+            </section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+    </div>
+    @RenderSection("scripts", required: false)
+
+
+    <script>
+function VMSGlobal() {}
+        VMSGlobal.RemoveCookies = "@Url.Action("RemoveCookies", "Home")";
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('a[href^="/"]').on('click', function (e) {
+                Sys.LoadingShow();
+            });
+        });
+        $(document).ready(function () {
+            $(document).ajaxError(function (event, request, settings) {
+                if (request.responseText != undefined) {
+                    var d = JSON.parse(request.responseText);
+                    if (d.msg == "SESSION TIMEOUT") {
+                        window.location.href = "@Url.Action("Logout", "Home")"
+                    }
+                    ShiMessage.error("AJAX ERROR!", "Ajax error :" + d.msg);
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

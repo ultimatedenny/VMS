@@ -1,0 +1,1060 @@
+﻿@model VMS.Web.Models.MDDeliveryOrder
+@{
+    ViewBag.Title = "Delivery Order";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Scripts.Render("~/Webcam")
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<script type="text/javascript" src=@Url.Content("~/Scripts/webcam.min.js")></script>
+<style>
+    .modal-lg {
+        width: 1280px; /* New width for large modal */
+    }
+</style>
+<script>
+        $(document).ready(function () {
+            GenerateDRGrid();
+            GenerateDOGrid();
+            GenerateDAGrid();
+            $('#DelViaDiv').hide();
+        })
+        function GenerateDOGrid() {
+        var dateFrom = $('#DateFromDO').val();
+        var dateTo = $('#DateToDO').val();
+        var Keyword = $('#KeywordDO').val();
+        var DO_Outstanding_Grid = $("#DO_Outstanding_Grid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "pageLength": 5,
+            "bLengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("Show_DO_Outstanding", "DeliveryOrder")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "dateFrom": dateFrom,
+                        "dateTo": dateTo,
+                        "KeyWord": Keyword
+                    });
+                }
+            },
+            "columnDefs": [
+                {
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                },
+                {
+                    "targets": [2],
+                    "searchable": false,
+                    "orderable": false
+                },
+                {
+                    "targets": [4],
+                    "searchable": false,
+                    "orderable": false
+                }
+            ],
+            "columns": [
+                { "data": "SENo", "name": "SENo", "title": "SENo", "autoWidth": true },
+                { "data": "SENo", "name": "SENo", "title": "SENo", "autoWidth": true },
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Pick Driver"  onclick="PickDriver(' + full.SENo + ',\'' + full.MasterId + '\')"><i class="fa fa-car"></i> </button> - <button class="btn btn-warning" data-toggle="tooltip" data-placement="top" title="Security Check" onclick="SecurityCheck(' + full.SENo + ')"><i class="fa fa-camera"></i> </button> - <button class="btn btn-success" onclick="ManagerApprove(' + full.SENo + ')"><i class="fa fa-check"></i> </button>';
+                    }
+                },
+                { "data": "DONo", "name": "DONo", "title": "DO Number", "autoWidth": true },
+                { "data": "ReqDate", "name": "ReqDate", "title": "Request Date", "autoWidth": true },
+
+                { "data": "UseID", "name": "UseID", "title": "Requestor", "autoWidth": true },
+                { "data": "DelVia", "name": "DelVia", "title": "Deliver via", "autoWidth": true },
+                { "data": "DriName", "name": "DriName", "title": "Driver Name", "autoWidth": true },
+                { "data": "VechNo", "name": "VechNo", "title": "Vehicle Number", "autoWidth": true },
+                { "data": "ContainerNo", "name": "ContainerNo", "title": "Container No", "autoWidth": true },
+
+                { "data": "SealNo", "name": "SealNo", "title": "SealNo", "autoWidth": true },
+                { "data": "ManagerApprove", "name": "ManagerApprove", "title": "HOD Approval", "autoWidth": true },
+                { "data": "TimeOut", "name": "TimeOut", "title": "Time Out", "autoWidth": true },
+                { "data": "SecurityCheck", "name": "SecurityCheck", "title": "Security Check", "autoWidth": true },
+                { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+            ]
+            }
+            );
+            /////
+            $("#addToList").click(function (e) {
+                e.preventDefault();
+                if ($("#UseDep").val() == "" || $("#UseID").val() == "" || $("#Address").val() == "") {
+                    toastr.error("Please fill Plant, Dept, Employee, and Address details first", "Error");
+                }
+                else {
+                    if ($.trim($("#Product").val()) == "" || $.trim($("#Quantity").val()) == "" || $.trim($("#Remark").val()) == "" || $.trim($("#Photo").val()) == "") {
+                        toastr.error("Product, Qty, Remark, and Photo Cannot Empty", "Error");
+                    }
+                    else {
+                        var Product = $("#Product").val(),
+                            Quantity = $("#Quantity").val(),
+                            Remark = $("#Remark").val(),
+                            IsReturned = $("#IsReturned").val(),
+                            ReturnedBy = $("#ReturnedBy").val(),
+                            Photo = $("#Photo").val(),
+
+                            detailsTableBody = $("#detailsTable tbody");
+                        var DOItem = '<tr><td>' + Product + '</td><td>' + Quantity + '</td><td>' + Remark + '</td><td>' + IsReturned + '</td><td>' + ReturnedBy + '</td><td>' + Photo + '</td><td><a data-itemId="0" href="#" class="deleteItem">Remove</a></td></tr>';
+                        detailsTableBody.append(DOItem);
+                        uploadPhoto();
+                        clearItem();
+                    }
+                }
+            });
+            /////
+            $("#saveOrder").click(function (e) {
+                e.preventDefault();
+                var orderArr = [];
+                orderArr.length = 0;
+                $.each($("#detailsTable tbody tr"), function () {
+                    orderArr.push({
+                        Product: $(this).find('td:eq(0)').html(),
+                        Quantity: $(this).find('td:eq(1)').html(),
+                        Remark: $(this).find('td:eq(2)').html(),
+                        IsReturned: $(this).find('td:eq(3)').html(),
+                        ReturnedBy: $(this).find('td:eq(4)').html(),
+                        Photo: $(this).find('td:eq(5)').html()
+                    });
+                });
+                var data = JSON.stringify({
+                    UseDep: $("#UseDep").val(),
+                    UseID: $("#UseID").val(),
+                    Address: $("#Address").val(),
+                    DelVia: $("#DelVia").val(),
+                    DriName: $("#DelViaOth").val(),
+                    //VechNo: $("#VechNo").val(),
+                    //SealNo: $("#SealNo").val(),
+                    //ContNo: $("#ContNo").val(),
+                    DODetail_: orderArr
+                });
+                if ($("#UseDep").val() == "" || $("#UseID").val() == "" || $("#Address").val() == "") {
+                    toastr.error("Please fill Plant, Dept, Employee, and Address details first", "Error");
+                }
+                else {
+                    if (orderArr.length == 0) {
+                        toastr.error("There is no item to deliver, please create a line of item.", "Error");
+                    }
+                    else {
+                        $.when(saveOrder(data)).then(function (response) {
+                            console.log(response);
+                        }).fail(function (err) {
+                            toastr.error("Error", "Error");
+                        });
+                    }
+
+                }
+            });
+        }
+        function GenerateDRGrid() {
+        var dateFrom = $('#DateFromDR').val();
+        var dateTo = $('#DateToDR').val();
+        var Keyword = $('#KeywordDR').val();
+        var DR_Outstanding_Grid = $("#DR_Outstanding_Grid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "pageLength": 5,
+            "bLengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("Show_DO_Returned", "DeliveryOrder")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "dateFrom": dateFrom,
+                        "dateTo": dateTo,
+                        "KeyWord": Keyword
+                    });
+                }
+            },
+            "columnDefs": [
+                {
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                },
+                {
+                    "targets": [2],
+                    "searchable": false,
+                    "orderable": false
+                },
+                {
+                    "targets": [4],
+                    "searchable": false,
+                    "orderable": false
+                }
+            ],
+            "columns": [
+                { "data": "Id", "name": "SENo", "title": "SENo", "autoWidth": true },
+                { "data": "Id", "name": "SENo", "title": "SENo", "autoWidth": true },
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-success"  onclick="ReturnItem(' + full.Id + ')"><i class="fa fa-arrow-down"></i> Return</button>';
+                    }
+                },
+                { "data": "DONo", "name": "DONo", "title": "DO Number", "autoWidth": true },
+                { "data": "UseID", "name": "UseID", "title": "Requestor", "autoWidth": true },
+
+                { "data": "Address", "name": "Address", "title": "Address", "autoWidth": true },
+                { "data": "Product", "name": "DriName", "title": "Product", "autoWidth": true },
+                { "data": "Quantity", "name": "VechNo", "title": "Quantity", "autoWidth": true },
+                { "data": "IsReturned", "name": "IsReturned", "title": "Is Returned", "autoWidth": true },
+                { "data": "ReturnedBy", "name": "DriName", "title": "Returned By", "autoWidth": true },
+            ]
+        }
+        );
+        }
+        function GenerateDAGrid() {
+        var dateFrom = $('#DateFromDA').val();
+        var dateTo = $('#DateToDA').val();
+        var KeyWord = $('#KeywordDA').val();
+        var DA_Outstanding_Grid = $("#DA_Outstanding_Grid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "pageLength": 5,
+            "bLengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("Show_DO_Report", "DeliveryOrder")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "dateFrom": dateFrom,
+                        "dateTo": dateTo,
+                        "KeyWord": KeyWord
+                    });
+                }
+            },
+            "columnDefs": [
+                {
+                    "targets": [0],
+                    "visible": false,
+                    "searchable": false
+                },
+                {
+                    "targets": [2],
+                    "searchable": false,
+                    "orderable": false
+                },
+                {
+                    "targets": [4],
+                    "searchable": false,
+                    "orderable": false
+                }
+            ],
+            "columns": [
+                { "data": "Id", "name": "SENo", "title": "SENo", "autoWidth": true },
+                { "data": "Id", "name": "SENo", "title": "SENo", "autoWidth": true },
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-success"  onclick="SeeDetails    (' + full.Id + ')"><i class="fa fa-1x fa-external-link-square"></i> See Details</button>';
+                    }
+                },
+                { "data": "DONo", "name": "DONo", "title": "DO Number", "autoWidth": true },
+                { "data": "ReqDate", "name": "ReqDate", "title": "Request Date", "autoWidth": true },
+
+                { "data": "UseID", "name": "UseID", "title": "Requestor", "autoWidth": true },
+                { "data": "UseDep", "name": "UseDep", "title": "Departemen", "autoWidth": true },
+                { "data": "Address", "name": "Address", "title": "Address", "autoWidth": true },
+                { "data": "Product", "name": "DriName", "title": "Product", "autoWidth": true },
+                { "data": "Quantity", "name": "Quantity", "title": "Quantity", "autoWidth": true },
+
+                { "data": "DelVia", "name": "DelVia", "title": "Deliver Via", "autoWidth": true },
+                { "data": "DriName", "name": "DriName", "title": "Driver Name", "autoWidth": true },
+                { "data": "VechNo", "name": "VechNo", "title": "VechNo", "autoWidth": true },
+                { "data": "TimeOut", "name": "TimeOut", "title": "Time Out", "autoWidth": true },
+                { "data": "SealNo", "name": "SealNo", "title": "Seal No", "autoWidth": true },
+
+                { "data": "ContainerNo", "name": "ContainerNo", "title": "Container No", "autoWidth": true },
+                { "data": "ReceiverName", "name": "ReceiverName", "title": "Receiver Name", "autoWidth": true },
+                { "data": "ReceivedDate", "name": "Received Date", "title": "Received Date", "autoWidth": true },
+                { "data": "IsReturned", "name": "IsReturned", "title": "Is Returned", "autoWidth": true },
+                { "data": "ReturnedBy", "name": "DriName", "title": "Returned By", "autoWidth": true },
+
+                { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+            ]
+        }
+        );
+        }
+</script>
+
+<script>
+    function DelViaChange() {
+        var A = $("#DelVia").val();
+        if (A == "OTHERS") {
+            $('#DelViaDiv').show();
+            $('#DelViaOth').val('');
+        }
+        else {
+            $('#DelViaDiv').hide();
+            $('#DelViaOth').val('');
+        }
+    }
+    function IsReturnedChange() {
+        var A = $("#IsReturned").val();
+        if (A == "True") {
+            $('#IsReturnedDiv').show();
+            $('#ReturnedBy').val('');
+        }
+        else {
+            $('#IsReturnedDiv').hide();
+            $('#ReturnedBy').val('');
+        }
+    }
+    function clearItem() {
+        $("#Product").val(''),
+        $("#Quantity").val(''),
+        $("#Remark").val(''),
+        $("#IsReturned").val(''),
+        $("#ReturnedBy").val(''),
+        $("#Photo").val('')
+    }
+    function addNewDO() {
+        $("#newDO").modal();
+        $("#CameraReceived").empty();
+        //onOffCamReceived();
+        startCamera();
+    }
+    function saveOrder(data) {
+        document.getElementById("saveOrder").disabled = true;
+        return $.ajax({
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            type: 'POST',
+            url: '@Url.Action("saveOrder", "DeliveryOrder", new { area=""})',
+            data: data,
+            success: function (result)
+            {
+                toastr.success(
+                    'Your Delivery Order has been submited',
+                    'Success',
+                    {
+                        timeOut: 2000,
+                        fadeOut: 2000,
+                        onHidden: function () {
+                            window.location.reload();
+                        }
+                    }
+                );
+            },
+            error: function (result)
+            {
+                toastr.error("Error", "Oops Something wrong");
+            }
+        });
+    }
+    function RetakePicItem() {
+        $("#divImage").hide();
+        $("#CameraReceived").show();
+        $("#CameraReceived").empty();
+        onOffCamReceived();
+    }
+    function GetPlants() {
+        return {
+            Plant: $("#PlantId").val()
+        }
+    }
+    function PopulateDepartment() {
+        $("#UseDep").data("kendoComboBox").dataSource.read();
+    }
+
+    function startChangeDO() {
+        var endPicker = $("#DateToDO").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateDRGrid();
+    }
+    function startChangeDR() {
+        var endPicker = $("#DateToDR").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateDOGrid();
+    }
+    function startChangeDA() {
+        var endPicker = $("#DateToDA").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateDAGrid();
+    }
+
+    var ManagerApprove =function (Id)
+    {
+        var url = '@Url.Action("ManagerApprove", "DeliveryOrder")' + "?SENo=" + Id;
+        $("#ManagerApproveModalDiv").load(url, function () {
+            $("#ManagerApproveModal").modal("show");
+        })
+    }
+    var PickDriver = function (Id, MasterId)
+    {
+        //var url = "/ExitPermit/EditMaster?SENo=" + id;
+        var url = '@Url.Action("PickDriver", "DeliveryOrder")' + "?SENo=" + Id + "&MasterId=" + MasterId ;
+        $("#PickDriverModalDiv").load(url, function () {
+            $("#PickDriverModal").modal("show");
+        })
+    }
+    var SecurityCheck = function (Id)
+    {
+        var url = '@Url.Action("SecurityCheck", "DeliveryOrder")' + "?SENo=" + Id;
+        $("#SecurityCheckModalDiv").load(url, function () {
+            $("#SecurityCheckModal").modal("show");
+        })
+    }
+    var ReturnItem = function (Id) {
+        var url = '@Url.Action("ReturnItem", "DeliveryOrder")' + "?Id=" + Id;
+        $("#ReturnItemDiv").load(url, function () {
+            $("#ReturnItemModal").modal("show");
+        })
+    }
+    var SeeDetails = function (Id) {
+        var url = '@Url.Action("SeeDetails", "DeliveryOrder")' + "?Id=" + Id;
+        $("#SeeDetailsDiv").load(url, function () {
+            $("#SeeDetailsModal").modal("show");
+        })
+    }
+
+    $(document).on('click', 'a.deleteItem', function (e) {
+        e.preventDefault();
+        var $self = $(this);
+        if ($(this).attr('data-itemId') == "0") {
+            $(this).parents('tr').css("background-color", "#ff6347").fadeOut(800, function () {
+                $(this).remove();
+            });
+        }
+    });
+</script>
+
+<script language="JavaScript">
+    var photoData;
+    Webcam.set({
+        width: 400,
+        height: 300,
+        image_format: 'jpeg',
+        upload_name: 'webcamPhoto',
+        jpeg_quality: 100
+    });
+    function startCamera() {
+        Webcam.attach('#myCamera');
+    }
+    function capturePhoto() {
+
+        Webcam.snap(function (data_uri) {
+            photoData = data_uri;
+            Webcam.freeze();
+            var raw_image_data = data_uri.replace(/^data\:image\/\w+\;base64\,/, '');
+            document.getElementById('webcamData').value = raw_image_data;
+        });
+        $("#Photo").val('');
+        getFileName();
+    }
+    function getFileName() {
+            $.ajax({
+                type: 'POST',
+                url: ("@Url.Content("~/DeliveryOrder/GetFileName1")"),
+                dataType: 'json',
+                success: function (data) {
+                    $("#Photo").val(data);
+                }
+            });
+        }
+    function uploadPhoto()
+    {
+        var FileName = $("#Photo").val();
+        var uploadUrl = '@Url.Action("SecurityCapture")' + "?FileName=" + FileName;
+        Webcam.upload(photoData, uploadUrl);
+        toastr.success("Success", "Success");
+        Webcam.unfreeze();
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-lg btn-info btn-block" onclick="addNewDO()" disabled>
+                        Outstading DO
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary btn-plus" onclick="addNewDO()"><i class="fa fa-plus"></i> Create Delivery Order</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateFromRP", "Date Start")
+                            @(Html.Kendo().DatePicker().Name("DateFromDO")
+                              .Start(CalendarView.Month)
+                              .Depth(CalendarView.Month)
+                              .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeDO"))
+                              .Format("yyyy-MM-dd")
+                              .Value(DateTime.Today.AddMonths(-1))
+                              .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateToRP", "Date To")
+                            @(Html.Kendo().DatePicker().Name("DateToDO")
+                                .Start(CalendarView.Month)
+                                .Depth(CalendarView.Month)
+                                .Min(DateTime.Today)
+                                .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateDOGrid"))
+                                .Format("yyyy-MM-dd")
+                                .Value(DateTime.Today)
+                                .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("Keyword", "Keyword : ")<br />
+                        <div class="k-content">
+                            @(Html.Kendo()
+                            .TextBox().Name("KeywordDO")
+                            .HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateDOGrid()" }))
+                        </div>
+                    </div>
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="DO_Outstanding_Grid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>SENo</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="col-md-12">
+                    <button type="button" onclick="ReceiveItemBySecurity('2')" class="btn btn-lg btn-danger btn-block " disabled>
+                        To Be Returned Item
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateFromLI", "Date Start")
+                            @(Html.Kendo().DatePicker().Name("DateFromDR")
+                              .Start(CalendarView.Month)
+                              .Depth(CalendarView.Month)
+                              .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeDR"))
+                              .Format("yyyy-MM-dd")
+                              .Value(DateTime.Today.AddMonths(-1))
+                              .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateToLI", "Date To")
+                            @(Html.Kendo().DatePicker().Name("DateToDR")
+                                .Start(CalendarView.Month)
+                                .Depth(CalendarView.Month)
+                                .Min(DateTime.Today)
+                                .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateDRGrid"))
+                                .Format("yyyy-MM-dd")
+                                .Value(DateTime.Today)
+                                .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("KeyWordLI", "Keyword : ")<br />
+                        <div class="k-content">
+                            @(Html.Kendo()
+                            .TextBox().Name("KeywordDR")
+                            .HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateDRGrid()" }))
+                        </div>
+                    </div>
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="DR_Outstanding_Grid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>SENo</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    @using (Html.BeginForm("ExportDeliveryOrder", "DeliveryOrder", FormMethod.Post))
+                    {
+                        <div class="col-md-3">
+                            <div class="k-content">
+                                @Html.Label("DateFromReport", "Date Start")
+                                @(Html.Kendo().DatePicker().Name("DateFromDA")
+                                  .Start(CalendarView.Month)
+                                  .Depth(CalendarView.Month)
+                                  .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeDA"))
+                                  .Format("yyyy-MM-dd")
+                                  .Value(DateTime.Today.AddMonths(-1))
+                                  .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                                )
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="k-content">
+                                @Html.Label("DateToReport", "Date To")
+                                @(Html.Kendo().DatePicker().Name("DateToDA")
+                                .Start(CalendarView.Month)
+                                .Depth(CalendarView.Month)
+                                .Min(DateTime.Today)
+                                .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateDAGrid"))
+                                .Format("yyyy-MM-dd")
+                                .Value(DateTime.Today)
+                                .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                                )
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            @Html.Label("KeyWordReport", "Keyword : ")<br />
+                            <div class="k-content">
+                                @(Html.Kendo()
+                                .TextBox().Name("KeywordDA")
+                                .HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateDAGrid()" }))
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="col-md-3">
+                                <br />
+                                <button class="btn btn-success" onclick="ExportExcel(0,0)"><i class="fa fa-file-excel-o"></i> Export Exel</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="DA_Outstanding_Grid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>SENo</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="newDO" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">New Delivery Order</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <input type="hidden" id="MasterId" />
+                    <input type="hidden" id="DONo" />
+                    <div class="form-group">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    @Html.Label("Section", "Section :")
+                                    @(Html.Kendo().ComboBox()
+                                              .Name("PlantId")
+                                              .Filter("contains")
+                                              .Placeholder("Select Plant...")
+                                              .DataTextField("plantName")
+                                              .DataValueField("plantId")
+                                              .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("getPlantList", "MasterData");
+                                                    });
+                                                }).Events(e => e.Change("PopulateDepartment"))
+                                              .Suggest(true)
+                                              .HtmlAttributes(new { style = "width:100%;" })
+                                                            )
+                                </div>
+                                <div class="col-md-4">
+                                    @Html.Label("Departement", "Departement :")
+                                    @(Html.Kendo().ComboBox()
+                                       .Name("UseDep")
+                                       .Filter("contains")
+                                       .Placeholder("Select Department...")
+                                       .DataTextField("DeptName")
+                                       .DataValueField("Dept")
+                                       .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetDepartmentforDDList", "MasterData").Data("GetPlants");
+                                        });
+                                    }).AutoBind(false)
+                                  .HtmlAttributes(new { style = "width:100%;" })
+                                                )
+
+                                </div>
+                                <div class="col-md-4">
+                                    @Html.Label("UseID", "Employee No :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("UseID")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    <text><i><h8>please fill with your username of VMS eg: sbm_user</h8></i></text>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    @Html.Label("Destination", "Address :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("Address")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    @Html.Label("DelVia", "Deliver via ?")
+                                    @(Html.Kendo().ComboBox()
+                                    .Name("DelVia")
+                                    .DataTextField("Text")
+                                    .DataValueField("Value")
+                                    .Events(e => e.Change("DelViaChange"))
+                                    .BindTo(new List<SelectListItem>() {
+                                        new SelectListItem() {
+                                          Text = "SBM DRIVER", Value = "SBM_DRIVER"
+                                        },
+                                        new SelectListItem() {
+                                          Text = "OTHER", Value = "OTHERS"
+                                        }
+                                    })
+                                    .HtmlAttributes(new { style = "width:100%;" }))
+                                </div>
+                                <div class="col-md-4" id="DelViaDiv">
+                                    @Html.Label("DelViaOth", "Name :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("DelViaOth")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    @*<br />
+                                    @Html.Label("VechNo", "Vehicle No. :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("VechNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    <br />
+                                    @Html.Label("VechNo", "Seal No. :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("SealNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    <br />
+                                    @Html.Label("VechNo", "Cont No. :")
+                                    @(Html.Kendo().TextBox()
+                                .Name("ContNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))*@
+                                </div>
+                            </div>
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <input type="hidden" id="detailId" />
+                                    <div class="col-md-2">
+                                        @Html.Label("Product", "Item Name :")
+                                        @(Html.Kendo().TextBox()
+                                .Name("Product")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    </div>
+                                    <div class="col-md-2">
+                                        @Html.Label("Quantity", "Quantity :")
+                                        @(Html.Kendo().TextBox()
+                                .Name("Quantity")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    </div>
+                                    <div class="col-md-2">
+                                        @Html.Label("Remark", "Remark :")
+                                        @(Html.Kendo().TextBox()
+                                .Name("Remark")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    </div>
+                                    <div class="col-md-2">
+                                        @Html.Label("IsReturned", "Is Returned ?")
+                                        @(Html.Kendo().ComboBox()
+                                    .Name("IsReturned")
+                                    .DataTextField("Text")
+                                    .DataValueField("Value")
+                                    .Events(e => e.Change("IsReturnedChange"))
+                                    .BindTo(new List<SelectListItem>() {
+                                        new SelectListItem() {
+                                          Text = "YES", Value = "True"
+                                        },
+                                        new SelectListItem() {
+                                          Text = "NO", Value = "False"
+                                        }
+                                    })
+                                    .HtmlAttributes(new { style = "width:100%;" }))
+                                    </div>
+                                    <div class="col-md-2" id="IsReturnedDiv">
+                                        @Html.Label("ReturnedBy", "Returned Date :")
+                                        @(Html.Kendo().DatePicker()
+                                          .Name("ReturnedBy")
+                                          .Min(DateTime.Today)
+                                          .Format("yyyy-MM-dd")
+                                          //.Events(e => e.Change("endChange"))
+                                          .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+                                    </div>
+                                    <div class="col-md-2">
+                                        @Html.Label("Photo", "Photo :")
+                                        @(Html.Kendo().TextBox()
+                                        .Name("Photo")
+                                        .HtmlAttributes(new { @class = "form-control",
+                                            @readonly = "true",
+                                                                   style = "width:100%",
+                                            required = "required",
+                                            data_required_msg = "Please Fill the Type" }))
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3">
+                                        <a id="addToList" class="btn btn-success">Add Item</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="detailsTable" class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:15%">Product</th>
+                                        <th style="width:15%">Quantity</th>
+                                        <th style="width:15%">Remark</th>
+                                        <th style="width:15%">Is Return ?</th>
+                                        <th style="width:15%">Returned Date</th>
+                                        <th style="width:15%">Photo</th>
+                                        <th style="width:10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="myCamera"></div>
+                            <input id="webcamData" type="hidden" name="webcamData" value="" />
+                            <br />
+                            <button type="button" class="btn btn-lg btn-info" id="btnCapture" onclick="capturePhoto()"><i class="fa fa-camera-retro"></i> Capture</button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="reset" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button id="saveOrder" type="button" class="btn btn-primary">Save DO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="PickDriverModal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title">Driver Pick</h3>
+            </div>
+            <div class="modal-body" id="PickDriverModalDiv">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="SecurityCheckModal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title">Outpost Check</h3>
+            </div>
+            <div class="modal-body" id="SecurityCheckModalDiv">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ReturnItemModal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title">Return Item</h3>
+            </div>
+            <div class="modal-body" id="ReturnItemDiv">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="SeeDetailsModal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title">Item Details</h3>
+            </div>
+            <div class="modal-body" id="SeeDetailsDiv">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ManagerApproveModal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title">HOD Approval</h3>
+            </div>
+            <div class="modal-body" id="ManagerApproveModalDiv">
+
+
+            </div>
+        </div>
+    </div>
+</div>

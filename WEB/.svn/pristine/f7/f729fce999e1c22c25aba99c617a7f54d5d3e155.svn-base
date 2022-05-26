@@ -1,0 +1,177 @@
+﻿<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.dataTables.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.bootstrap4.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.responsive.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/responsive.bootstrap4.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/bootstrap.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/popper.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/sweetalert.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/moment.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/moment.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/tempusdominus-bootstrap-4.min.js")></script>
+@Styles.Render("~/Content/bootstrap.min.css")
+@Styles.Render("~/Content/bootstrap.css")
+@Styles.Render("~/Content/FA/css/font-awesome.min.css")
+@Styles.Render("~/Content/tempusdominus-bootstrap-4.min.css")
+@Styles.Render("~/Content/dataTables.bootstrap4.min.css")
+@Styles.Render("~/Content/jquery.dataTables.min.css")
+
+
+<style>
+    .bs-example {
+        margin: 10px;
+    }
+
+    td.details-control {
+        background: url('https://cdn.rawgit.com/DataTables/DataTables/6c7ada53ebc228ea9bc28b1b216e793b1825d188/examples/resources/details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+
+    tr.shown td.details-control {
+        background: url('https://cdn.rawgit.com/DataTables/DataTables/6c7ada53ebc228ea9bc28b1b216e793b1825d188/examples/resources/details_close.png') no-repeat center center;
+    }
+
+    hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        GenerateDOGrid();
+    })
+    function GenerateDOGrid() {
+        var dateFrom = $("#start1").val();
+        var Requestor = $("#Requestor").val();
+        var DO_Outstanding_Grid = $("#DO_Outstanding_Grid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "paging": false,
+            "pageLength": 50,
+            "lengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("Show_DO_Outstanding_Driver_Delivered", "DeliveryOrder")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "dateFrom": dateFrom,
+                        "Requestor": Requestor,
+                        "KeyWord": "DO"
+                    });
+                }
+            },
+            "columnDefs":
+            [
+                    {
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false,
+                        "orderable": false,
+                    },
+                    {
+                        "targets": [1],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false,
+                    },
+                    {
+                        "targets": [2],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false,
+                    },
+                    {
+                        "targets": [3],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false,
+                    },
+                    {
+                        "targets": [4],
+                        "visible": true,
+                        "searchable": false,
+                        "orderable": false,
+                    }
+            ],
+            "columns": [
+                { "data": "SENo", "name": "SENo", "title": "SENo", "autoWidth": true },
+                { "data": "DONo", "name": "DONo", "title": "DO No", "autoWidth": true },
+                { "data": "UseID", "name": "UseID", "title": "Requestor", "autoWidth": true },
+                { "data": "Address", "name": "Address", "title": "Address", "autoWidth": true },
+                {
+                    "data": "Status",
+                    "render": function (data, type, full, meta)
+                    {
+                        if (full.Status === 'DELIVERED') {
+                            return '<span class="badge badge-success" onclick="Details(' + full.SENo + ',\'' + full.MasterId + '\')">DELIVERED</span>';
+                        }
+                        else if (full.Status === 'CANCELED') {
+                            return '<span class="badge badge-warning" onclick="Details(' + full.SENo + ',\'' + full.MasterId + '\')">CANCELED</span>';
+                        }
+                    }
+                }
+            ]
+        }
+        );
+    }
+    var Details = function (Id, MasterId)
+    {
+        var url = '@Url.Action("MobileDetails", "DeliveryOrder")' + "?SENo=" + Id + "&MasterId=" + MasterId ;
+        window.location.href = url;
+    }
+    $(function () {
+        $('#DateFormat1').datetimepicker({
+            format: 'YYYY-MM-DD'
+        });
+    });
+</script>
+<div style="margin:10px">
+    <form>
+        <div class="form-row">
+            <div class="col-5">
+                <div class="input-group date" id="DateFormat1" data-target-input="nearest">
+                    <input type="text" id="start1" class="form-control form-control-sm datetimepicker-input" data-target="#DateFormat1" onchange="startChangeHis1()" />
+                    <div class="input-group-append" data-target="#DateFormat1" data-toggle="datetimepicker">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-5">
+                <input type="text" id="Requestor" class="form-control form-control-sm" placeholder="Requestor" />
+            </div>
+            <div class="col-2">
+                <button type="button" class="btn btn-primary btn-sm btn-block" onclick="GenerateDOGrid();">Search</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row" style="margin: 0">
+    <div class="col-md-12">
+        <div style="width:100%; margin:0 auto;">
+            <table id="DO_Outstanding_Grid" class="table dt-responsive nowrap" width="100%" style="font-size: small" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+

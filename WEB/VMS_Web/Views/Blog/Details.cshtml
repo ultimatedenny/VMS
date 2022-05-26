@@ -1,0 +1,62 @@
+﻿@model VMS.Web.Models.NewsMaster
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src=@Url.Content("~/Scripts/jquery.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/jquery.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/jquery.dataTables.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.bootstrap4.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.responsive.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/responsive.bootstrap4.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/bootstrap.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/popper.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/sweetalert.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/moment.min.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/moment.js")></script>
+    <script type="text/javascript" src=@Url.Content("~/Scripts/tempusdominus-bootstrap-4.min.js")></script>
+
+    @Styles.Render("~/Content/bootstrap.min.css")
+    @Styles.Render("~/Content/bootstrap.css")
+    @Styles.Render("~/Content/FA/css/font-awesome.min.css")
+    @Styles.Render("~/Content/tempusdominus-bootstrap-4.min.css")
+    @Styles.Render("~/Content/dataTables.bootstrap4.min.css")
+    @Styles.Render("~/Content/jquery.dataTables.min.css")
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mt-4">@Html.DisplayFor(model => model.Header)</h1>
+                <p class="lead">
+                    by
+                    <a href="#">@Html.DisplayFor(model => model.CreatedBy)</a>
+                </p>
+                <hr>
+                <p>Posted on @Html.DisplayFor(model => model.CreatedDate)</p>
+                <hr>
+                <img class="img-fluid rounded" src="@Html.DisplayFor(model => model.FeaturedImage)" alt="">
+                <hr>
+                <div id="test" class="center">
+                    @Html.DisplayFor(model => model.BodyHTML)
+                </div>
+                <hr>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+        $('#test').each(function () {
+            var $this = $(this);
+            var t = $this.text();
+            $this.html(t.replace('&lt', '<').replace('&gt', '>'));
+        });
+    })
+</script>

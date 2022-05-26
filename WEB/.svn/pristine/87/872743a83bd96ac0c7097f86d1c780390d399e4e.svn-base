@@ -1,0 +1,61 @@
+﻿@model VMS.Web.Models.AppointmentViewModel
+<div>
+    @(Html.Kendo().Window()
+    .Name("windowUploadFile")
+    .Title("Upload Template")
+    .Content(@<text>
+    <div class="row">
+        <div class="col-md-10">
+            <button class="btn btn-success" type="button" onclick="GetDownloadTemplateVisitor()"><i class="fa fa-download"></i> Download Template</button>
+        </div>
+    </div>
+    <hr />  
+    <div class="row">
+        <div class="col-md-10">
+            <input name="FilesCertDoc" id="FilesCertDoc" type="file" />
+        </div>
+    </div>
+    </text>)
+    .Draggable()
+    .Resizable()
+    .Width(300)
+    .Actions(actions => actions.Close()).Visible(false)
+    )
+</div>
+<script>
+    $("#FilesCertDoc").kendoUpload({
+        async: {
+            saveUrl: '@Url.Action("PostUploadVisitor", "Appointment")',
+            autoUpload: true
+        },
+        multiple: false,
+        upload: function (e) {
+            e.data = {
+                DateStart: $("#@Html.IdFor(m => m.VisitLog.DateStart)").val(),
+                DateEnd: $("#@Html.IdFor(m => m.VisitLog.DateEnd)").val(),
+                HostId: $("#@Html.IdFor(m => m.VisitLog.HostId)").val()
+            };
+        },
+        success: onSuccessFile,
+        error: onErrorFile,
+    });
+    function onSuccessFile(data) {
+        searchVisitor();
+        $('#rowButtonSave').slideDown('slow');
+        $("#windowUploadFile").data("kendoWindow").close()
+        if (data.response.Success) {
+            toastr.success("success", data.response.Message)
+        }
+        else {
+            ShiMessage.error("Error backend", data.response.Message)
+        }
+    }
+    function onErrorFile(data) {
+        var err = data.XMLHttpRequest.responseText;
+        ShiMessage.error("Error", err)
+    }
+    function GetDownloadTemplateVisitor() {
+        window.open("@Url.Action("GetTemplateVisitor")","_blank")
+    }
+
+</script>

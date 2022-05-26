@@ -1,0 +1,247 @@
+﻿@model VMS.Web.Models.DOMaster
+@Scripts.Render("~/Mousetrap")
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/jquery.dataTables.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.bootstrap4.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/dataTables.responsive.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/responsive.bootstrap4.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/bootstrap.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/popper.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/sweetalert.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/moment.min.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/moment.js")></script>
+<script type="text/javascript" src=@Url.Content("~/Scripts/tempusdominus-bootstrap-4.min.js")></script>
+@Styles.Render("~/Content/bootstrap.min.css")
+@Styles.Render("~/Content/bootstrap.css")
+@Styles.Render("~/Content/FA/css/font-awesome.min.css")
+@Styles.Render("~/Content/tempusdominus-bootstrap-4.min.css")
+@Styles.Render("~/Content/dataTables.bootstrap4.min.css")
+@Styles.Render("~/Content/jquery.dataTables.min.css")
+<style>
+    .div-1 {
+        background-color: #bacad2;
+    }
+
+    .div-0 {
+        background-color: #C0C0C0;
+    }
+</style>
+<div class="form-horizontal">
+    <form id="myForm1">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.SENo)
+        @Html.HiddenFor(model => model.MasterId)
+        @Html.HiddenFor(model => model.TimeOut)
+        @Html.DisplayFor(model => model.ReceiverName)
+        @Html.HiddenFor(model => model.ReceivedDate)
+        @Html.HiddenFor(model => model.ReceivedPic)
+        @Html.HiddenFor(model => model.SecurityCheck)
+        @Html.HiddenFor(model => model.SecurityPic)
+        @Html.HiddenFor(model => model.ReceivedDate)
+        @Html.HiddenFor(model => model.ManagerApprove)
+        <div class="div-0" style="margin:0px">
+            <h7 style="margin-left:10px" onclick="backtolist();"><b> < Delivery Order</b></h7>
+        </div>
+        <div class="div-1" style="margin:0px">
+            <h7 style="margin-left:10px"><b>Requestor</b></h7>
+        </div>
+        <div style="margin:10px">
+            <table>
+                <td>
+                    <dt>
+                        <a>DO Number </a>
+                    </dt>
+                    <dt>
+                        <a>Departement </a>
+                    </dt>
+                    <dt>
+                        <a>Requestor </a>
+                    </dt>
+                    <dt>
+                        <a>Address </a>
+                    </dt>
+                    <dt>
+                        <a>Deliver via </a>
+                    </dt>
+                    <dt>
+                        <a>Status </a>
+                    </dt>
+                </td>
+                <td>
+                    <dt>
+                        : @Html.DisplayFor(model => model.DONo)
+                    </dt>
+                    <dt>
+                        : @Html.DisplayFor(model => model.UseDep)
+                    </dt>
+                    <dt>
+                        : @Html.DisplayFor(model => model.UseID)
+                    </dt>
+                    <dt>
+                        : @Html.DisplayFor(model => model.Address)
+                    </dt>
+                    <dt>
+                        : @Html.DisplayFor(model => model.DelVia)
+                    </dt>
+                    <dt>
+                        : @Html.DisplayFor(model => model.Status)
+                    </dt>
+                </td>
+            </table>
+        </div>
+        <div class="div-1" style="margin:0px">
+            <h7 style="margin-left:10px"><b>Delivery</b></h7>
+        </div>
+        <div style="margin:10px">
+            <table>
+                <td>
+                    <dt>
+                        <a>Address &nbsp; &nbsp; &nbsp; &nbsp; </a>
+                    </dt>
+                </td>
+                <td>
+                    <dt>
+                        : @Html.DisplayFor(model => model.Address)
+                    </dt>
+                </td>
+            </table>
+        </div>
+        <div class="div-1" style="margin:0px">
+            <h7 style="margin-left:10px"><b>Product/Equipment Carried</b></h7>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Remark</th>
+                    <th>Is Returned</th>
+                    <th>Returned By</th>
+                    <th>Returned Date</th>
+                    <th>Photo</th>
+                </tr>
+                @foreach (var item in Model.DODetails)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Product)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Quantity)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Remark)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IsReturned)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ReturnedBy)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ReturnedDate)
+                        </td>
+                        <td>
+                            <img style="height:90px" src="@Url.Content("~/uploads/DOItem/" + item.Photo + "")" alt="IMAGES" />
+                            @*@Html.DisplayFor(modelItem => item.Photo)*@
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <div class="div-1" style="margin:0px">
+            <h7 style="margin-left:10px"><b>Driver Details</b></h7>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.Label("DriName", "Driver Name :")
+                @(Html.Kendo().TextBoxFor(model => model.DriName)
+                                .Name("DriName")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.Label("VechNo", "Vehicle No :")
+                @(Html.Kendo().TextBoxFor(model => model.VechNo)
+                                .Name("VechNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.Label("SealNo", "Seal No :")
+                @(Html.Kendo().TextBoxFor(model => model.SealNo)
+                                .Name("SealNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.Label("ContainerNo", "Container No :")
+                @(Html.Kendo().TextBoxFor(model => model.ContainerNo)
+                                .Name("ContainerNo")
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <br />
+        <div class="form-group">
+            <div class="col-md-12">
+                <a href="#" id="btnSubmit" class="btn btn-success btn-block">
+                    <span>Update</span>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $("#btnSubmit").click(function () {
+        if ($("#DriName").val() == "" || $("#VechNo").val() == "")
+        {
+            toastr.error("Please fill Driver Name and Vehicle Number", "Error");
+        }
+        else
+        {
+            var myformdata = $("#myForm1").serialize();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DriverPick", "DeliveryOrder")',
+                data: myformdata,
+                success: function () {
+                    alert("UPDATING SUCCESS")
+                    var url = '@Url.Action("MobileDriver", "DeliveryOrder")';
+                    window.location.href = url;
+                },
+                error: function () {
+                    alert("UPDATING SUCCESS")
+                    var url = '@Url.Action("MobileDriver", "DeliveryOrder")';
+                    window.location.href = url;
+                }
+            })
+        }
+    })
+</script>
+
+<script>
+    function backtolist() {
+        var url = '@Url.Action("MobileDriver", "DeliveryOrder")';
+        window.location.href = url;
+    }
+</script>

@@ -1,0 +1,93 @@
+﻿<!-- sidebar menu: : style can be found in sidebar.less -->
+@model IEnumerable<VMS.Web.Models.MenulistDto>
+<ul class="sidebar-menu" data-widget="tree">
+    <li class="header">MAIN NAVIGATION</li>
+    @if (Model != null)
+    {
+        foreach (var item in Model.Where(m => m.MenuParent == "AR"))
+        {
+            if (Model.Where(m => m.MenuParent == item.MenuCode).Count() < 1)
+            {
+                <li>
+                    <a href="@Url.Action(@item.MenuAction, @item.MenuController)" class="Navigation">
+                        <i class="fa @item.MenuIcon"></i> <span>@item.MenuName</span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                @*<li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span>Master Data</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="#"><i class="fa fa-chain"></i> Area Group</a></li>
+                        <li><a href="#"><i class="fa fa-chain"></i> Area</a></li>
+                        <li><a href="#"><i class="fa fa-chain"></i> Visitor List</a></li>
+                        <li><a href="#"><i class="fa fa-chain"></i> Plant</a></li>
+                        <li><a href="#"><i class="fa fa-chain"></i> Visitor Type</a></li>
+                    </ul>
+                </li>*@
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa @item.MenuIcon"></i>
+                        <span>@item.MenuName</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu" >
+                        @foreach (var subitem in Model.Where(m => m.MenuParent == item.MenuCode))
+                        {
+                            <li>
+                                <a href="@Url.Action(@subitem.MenuAction, @subitem.MenuController)" class="Navigation">
+                                    <i class="fa @subitem.MenuIcon"></i> @subitem.MenuName
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
+
+        }
+    }
+    <li>
+        <a href="@Url.Action("Logout", "Home")" class="Navigation">
+            <i class="fa fa-user-times fa-2x"></i><span style="padding-left:20px;font-size:14px;">Sign Out</span>
+        </a>
+    </li>
+    @*<li class="treeview">
+        <a href="#">
+            <i class="fa fa-database"></i> <span>Master Data</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
+        <ul class="treeview-menu">
+            <li><a href="#"><i class="fa fa-chain"></i> Area Group</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> Area</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> Visitor List</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> Plant</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> Visitor Type</a></li>
+        </ul>
+    </li>
+    <li class="treeview">
+        <a href="#">
+            <i class="fa fa-wrench"></i> <span>Settings</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
+        <ul class="treeview-menu">
+            <li><a href="#"><i class="fa fa-chain"></i> User</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> Business Function</a></li>
+            <li><a href="#"><i class="fa fa-chain"></i> User Access</a></li>
+        </ul>
+    </li>*@
+    
+    @*@Html.Raw(Session["menulist"].ToString())*@
+
+</ul>

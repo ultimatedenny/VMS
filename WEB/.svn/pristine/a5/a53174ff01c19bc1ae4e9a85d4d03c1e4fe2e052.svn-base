@@ -1,0 +1,909 @@
+﻿@using VMS.Web.Models;
+
+@model AppointmentViewModel
+@{
+    ViewBag.Title = "Visitor Activity";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Scripts.Render("~/Mousetrap")
+@Scripts.Render("~/Webcam")
+<style scoped>
+    .k-textboxlarge {
+        height: 40px;
+        width: 100%;
+        font-size: 20px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+</style>
+<!--SCRIPT DOCUMENT READY-->
+<script>
+    $(document).ready(function () {
+        DP.AJaxAll({ Data : true
+        }, "@Url.Action("GetCheckMandatory", "Visitor")", fnResultMandatory)
+    })
+    function fnResultMandatory(data) {
+        $("#txtSearchById").focus()
+        $("#isCardMandatory").val(data.data.Card)
+        $("#isPhotoMandatory").val(data.data.Photo)
+        if (!data.data.Card) {
+            $("#rowButtonSearch").show();
+        }
+        else {
+            $('#txtSearchById').keyup(function () {
+                var numbers = $(this).val();
+                $(this).val(numbers.replace(/\D/, ''));
+            });
+            $('#CardRegister').keyup(function () {
+                var numbers = $(this).val();
+                $(this).val(numbers.replace(/\D/, ''));
+            });
+        }
+    }
+</script>
+<!--END SCRIPT DOCUMENT READY-->
+
+<!--HIDDEN FIELD-->
+@Html.Hidden("isPhotoMandatory")
+@Html.Hidden("isCardMandatory")
+@Html.Hidden("CardScanned")
+@Html.Hidden("photoSource")
+
+<!--END HIDDEN FIELD-->
+
+<!-- BOX SEARCH -->
+<div class="row">
+    <div class="col-md-6 col-md-offset-3" id="boxSearchById">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("txtSearchById", "TAP ID Card : ")
+                            @(Html.Kendo()
+                    .TextBox()
+                    .Name("txtSearchById").HtmlAttributes(new { @class = "form-control k-textboxlarge text-center" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="rowButtonSearch" hidden="hidden">
+                    <div class="col-md-12">
+                        <button class="btn btn-lg btn-info pull-right" onclick="fnShowSearchBoxByName()"><i class="fa fa-caret-square-o-right"></i> Search By Name</button>
+                    </div>
+                    
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+    <div class="col-md-8 col-md-offset-2" id="boxSearchByName" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("txtSearchName", "Search Name/Company Name/Phone Number : ")
+                            @(Html.Kendo()
+                    .TextBox()
+                    .Name("txtSearchName").HtmlAttributes(new { @class = "form-control k-textboxlarge text-center" }))
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+
+        </div>
+    </div>
+</div>
+<!-- END OF BOX SEARCH-->
+
+<!--BOX GRID VISITOR-->
+<div class="row">
+    <div class="col-md-8 col-md-offset-2" id="boxGridName" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-info" onclick="registerVisitor()" type="button"><i class="fa fa-plus-circle"></i> Add New Visitor</button>
+                    </div>
+                </div><hr />
+                <div class="row">
+                    <div class="col-md-12">
+                        @(Html.Kendo().Grid<Visitor>().Name("VisitorGrid")
+            .Columns(col =>
+            {
+
+                col.Bound(p => p.FullName).Title("Visitor Name");
+                col.Bound(p => p.Company).Title("Company");
+                col.Bound(p => p.Phone).Title("Phone");
+                col.Bound(p => p.HostName).Title("Host Name");
+                col.Bound(p => p.Status).Title("Status").ClientTemplate("#= SetButtonStatus(data.Status, data.id)#");
+
+            })
+            .AutoBind(false)
+            .Pageable().Events(e => e.DataBound("onDataBound"))
+            .Sortable()
+            .Scrollable()
+            .HtmlAttributes(new { style = "height:600px;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Model(model => model.Id(p => p.id))
+                .PageSize(20)
+                .Read(read => read.Action("GetVisitorsForAppointment", "Visitor").Data("GetRetrieveParameter"))
+                ))
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+
+        </div>
+    </div>
+</div>
+<!--END BOX GRID VISITOR-->
+
+<!--BOX DETAIL APPOINTMENT-->
+<div class="row">
+    <div class="col-md-6" id="boxDetailVisitor" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Detail Visitor
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Hidden("detailId")
+                            @Html.Label("detailName", "Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailName").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("detailCompany", "Company : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailCompany").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("detailJobDesc", "Job Description : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailJobDesc").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("detailPhone", "Phone Number : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailPhone").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("detailEmail", "Email : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailEmail").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("detailVehicleNo", "Vehicle No : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("detailVehicleNo").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="rowCreateAppointment" hidden="hidden">
+                    <div class="col-md-4 pull-right">
+                        <button class="btn btn-warning" id="btnCreateAppointment" onclick="CreateAppointment()"><i class="fa fa-search"></i> Create Appointment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <div class="col-md-6" id="boxDetailHost" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Detail Host
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Hidden("HostLogId")
+                            @Html.Hidden("HostId")
+                            @Html.Label("HostName", "Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("HostName").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("HostDepartment", "Department : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("HostDepartment").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("HostTel", "Ext No. : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("HostTel").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("AppointmentStart", "Appointment Start : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("AppointmentStart").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("AppointmentEnd", "Appointment End : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("AppointmentEnd").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("VisitorType", "Visitor Type : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("VisitorType").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("ApprovalHost", "Approval : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("ApprovalHost").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.Label("Remark", "Remark : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("Remark").HtmlAttributes(new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</div>
+<!--END BOX DETAIL APPOINTMENT-->
+
+<!--BOX PHOTO AND CHECKIN-->
+<div class="row">
+    <div class="col-md-6" id="boxDetailVisitorPhoto" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Photo Visitor
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="card-img">
+                            <img height="200" id="detailPhoto" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        @Html.Label("RemarkCheckIn", "Remark :")
+                        @Html.TextArea("RemarkCheckIn", "", 4, 3, new { @class = "k-textbox", style = "width: 100%; padding:10px", required = "required" })
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-info" id="btnRetakePhoto" onclick="OpenModalTakePhoto()"><i class="fa fa-camera"></i> Retake</button>
+                    </div>
+                    <div class="col-md-3 pull-right">
+                        <button class="btn btn-success" id="BtnSignIn" onclick="SetShimanoBadge()"><i class="fa  fa-sign-in"></i> Sign In</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <div class="col-md-6" id="BoxSignInCard" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Register Shimano Badge
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("CardShimano", "TAP Shimano Badge Card : ")
+                            @(Html.Kendo()
+                                .TextBox()
+                                .Name("CardShimano").HtmlAttributes(new { @class = "form-control k-textboxlarge text-center" }))
+
+                            @*@Html.TextBox("searchName", "", new { @class = "form-control ShimanoBlackBox", required = "required" })*@
+                        </div>
+
+                    </div>
+                </div>
+                <br />
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</div>
+<!--END BOX PHOTO AND CHECKIN-->
+
+<!--VISITOR IN AREA-->
+<div class="row">
+    <div class="col-md-6 col-md-offset-3" id="boxDetailVisitorInArea" hidden="hidden">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Detail Visitor
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Hidden("inVisitorId")
+                            @Html.Hidden("inLogId")
+                            @Html.Label("inFullName", "Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inFullName").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("inCompany", "Company : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inCompany").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("inStatus", "Status : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inStatus").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.Label("inHostName", "Host Name : ")<br />
+                            @(Html.Kendo()
+                .TextBox()
+                .Name("inHostName").HtmlAttributes(new { style = "width:100%", @class = "form-control", @readonly = "readonly" }))
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Label("inRemark", "Remark : ")<br />
+                            @(Html.TextArea("inRemark", "", 3, 3, new { @class = "form-control", @readonly = "readonly" }))
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="rowMenuVisitor">
+                    <div class="col-md-4" id="rowVisitorCheckIn" hidden="hidden">
+                        <button class="btn btn-success" onclick="PostVisitorAction(3)"><i class="fa fa-sign-in"></i> Check In</button>
+                    </div>
+                    <div class="col-md-4" id="rowVisitorBreak" hidden="hidden">
+                        <button class="btn btn-warning" onclick="PostVisitorAction(2)"><i class="fa fa-sign-out"></i> Break</button>
+                    </div>
+                    <div class="col-md-4 pull-right">
+                        <button class="btn btn-danger" onclick="PostVisitorAction(4)"><i class="fa fa-sign-out"></i> Check Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</div>
+<!--END VISITOR IN AREA-->
+
+
+
+<!--PHOTO-->
+<div class="modal fade" id="modalTakePhoto">
+    <div class="modal-dialog  modal-lg ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="titleTakePhoto">Retake Photo for </h3>
+            </div>
+            <div class="modal-body" id="myModalBodyDiv1">
+                <div class="row">
+                    <div class="col-md-6 text-center">
+                        <div class="form-group">
+                            <div id="Camera">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-lg btn-info" id="btnCapture" onclick="webcam.capture();"><i class="fa fa-camera-retro"></i> Capture</button>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <div class="form-group">
+                            <img id="imgToSubmit" class="img-responsive" style="height:360px; width:90%;" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                        </div>
+                        <button type="button" class="btn btn-lg btn-info" id="btnSubmitPhoto" onclick="savePhoto()"><i class="fa fa-download"></i> Submit</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!--END OF PHOTO-->
+
+<!-- ==================MODAL==============================-->
+<div class="modal fade" id="modalRegisterCard">
+    <div class="modal-dialog  modal-lg ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">Register Card Visitor</h3>
+            </div>
+            <div class="modal-body" id="myModalBodyDiv1">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @Html.Hidden("IdRegister")
+                            @Html.Label("CardRegister", "TAP NFC Card : ")
+                            @(Html.Kendo()
+                                .TextBox()
+                                .Name("CardRegister").HtmlAttributes(new { @class = "form-control k-textboxlarge text-center" }))
+
+                            @*@Html.TextBox("searchName", "", new { @class = "form-control ShimanoBlackBox", required = "required" })*@
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function fnShowSearchBoxByName() {
+        $("#boxSearchById").hide('fast')
+        $("#boxSearchByName").show('fast')
+        $('#txtSearchName').focus()
+    }
+</script>
+<!--Function Keyboard-->
+ <script id="KeyboardPressed">
+     $('#txtSearchById').on('keypress', function (e) {
+         if (e.which === 13) {
+             var id = $('#txtSearchById').val();
+             if (id == "") {
+                 return;
+             }
+             GetsearchVisitorbyBadge(id);
+         }
+     });
+     $('#txtSearchName').on('keypress', function (e) {
+         if (e.which === 13) {
+             var Name = $('#txtSearchName').val();
+             GetRetrieveGrid();
+             $("#boxGridName").show()
+         }
+     });
+     $('#CardRegister').on('keypress', function (e) {
+         if (e.which === 13) {
+             $(this).attr("disabled", "disabled");
+             var id = $('#IdRegister').val();
+             var CardId = $('#CardRegister').val();
+             PostSaveCardRegister(id, CardId);
+             $(this).removeAttr("disabled");
+         }
+     });
+     $('#CardShimano').on('keypress', function (e) {
+         if (e.which === 13) {
+             PostsaveToCheckIn();
+         }
+     });
+ </script>
+<!--Function Keyboard-->
+
+
+<script id="VisitorGrids">
+    function GetRetrieveGrid() {
+        Sys.LoadingShow();
+        $('#VisitorGrid').data('kendoGrid').dataSource.read()
+    }
+    function GetRetrieveParameter() {
+        return { Name: $('#txtSearchName').val() };
+    }
+    function onDataBound() {
+        //this.expandRow(this.tbody.find("tr.k-master-row").first());
+        Sys.DialogClose();
+    }
+    function SetButtonStatus(Status, Id) {
+        if (Status == 0) {
+            return "<button type='button' class='btn btn-success' onclick='GetTheVisitorCheckin(" + Id + ")'><i class='fa fa-sign-in'></i> No Appointment</button>"
+        }
+        else if (Status == "CHECKIN" || Status == "BREAK") {
+            return "<button type='button' class='btn btn-info' onclick='GetTheVisitorCheckout(" + Id + ")'><i class='fa fa-sign-out'></i> " + Status + "</button>"
+        }
+        else {
+            return "<button type='button' class='btn btn-success' onclick='GetTheVisitorCheckin(" + Id + ")'><i class='fa fa-sign-in'></i> " + Status + "</button>"
+        }
+    }
+    function GetsearchVisitorbyBadge(CardId) {
+        DP.AJaxAll({
+            CardId:CardId
+        }, "@Url.Action("GetsearchVisitorbyBadge", "Visitor")", function (data) {
+            if (data.Success) {
+                $("#CardScanned").val(CardId)
+                ShowVisitorInArea(data.data);
+                toastr.success("ID Found! Name who has this card is : " + data.data.FullName, "Success!");
+            }
+            else {
+                GetsearchByIDCard(CardId)
+            }
+        })
+    }
+    function GetsearchVisitorbyVisitorID(VisitorID) {
+        DP.AJaxAll({
+            VisitorID: VisitorID
+        }, "@Url.Action("GetsearchVisitorbyVisitorID", "Visitor")", function (data) {
+            if (data.Success) {
+                $("#CardScanned").val(VisitorID)
+                ShowVisitorInArea(data.data);
+                toastr.success("ID Found! Name who has this card is : " + data.data.FullName, "Success!");
+                $("#boxGridName").hide("fast")
+                $('#boxSearchByName').hide("fast")
+            }
+            else {
+
+            }
+        })
+    }
+    function GetsearchByIDCard(CardId) {
+        DP.AJaxAll({
+            CardId:CardId
+        }, "@Url.Action("GetsearchByIDCard", "Visitor")", function (data) {
+            if (data.visitor.Success) {
+                $("#CardScanned").val(CardId)
+                ShowSearchByID(data);
+                toastr.success("ID Found! Name who has this card is : " + data.visitor.data.FullName, "Success!");
+            }
+            else {
+                toastr.warning("ID Not Found! Please Register this ID Card", "Warning!");
+                fnShowSearchBoxByName();
+            }
+        })
+    }
+    function GetsearchByIDVisitor(VisitorID) {
+        DP.AJaxAll({
+            VisitorID: VisitorID
+        }, "@Url.Action("GetsearchByIDVisitor", "Visitor")", function (data) {
+            if (data.visitor.Success) {
+                $("#CardScanned").val(VisitorID)
+                ShowSearchByID(data);
+                toastr.success("ID Found! Name who has this card is : " + data.visitor.data.FullName, "Success!");
+                $("#boxGridName").hide("fast")
+                $('#boxSearchByName').hide("fast")
+            }
+            else {
+                ShiMessage.error("ERROR", data.visitor.Message);
+            }
+        })
+    }
+    function PostVisitorAction(id) {
+        var visitorId = $("#inVisitorId").val();
+        var logId = $("#inLogId").val();
+        var CardId = $("#CardScanned").val();
+        DP.AJaxAll({
+            Id: visitorId, LogId: logId, CardId: CardId, method: id
+        }, '@Url.Action("VisitorActionChgStatus", "Visitor")', function (data) {
+            if (data.Success) {
+                location.reload();
+                toastr.sucess(data.message, "success")
+            }
+            else {
+                ShiMessage.error("ERROR!", data.Message);
+            }
+        })
+    }
+    function PostsaveToCheckIn() {
+        var Id = $("#detailId").val();
+        var LogId = $("#HostLogId").val()
+        var CardId = $("#CardShimano").val()
+        var remark = $("#RemarkCheckIn").val()
+        DP.AJaxAll({
+            Id: Id, LogId: LogId, CardId: CardId, Remark: remark
+        },'@Url.Action("SaveToCheckin", "Visitor")', function(data){
+            if (data.Success === true) {
+                location.reload();
+                toastr.sucess(data.Message, "success")
+            }
+            else {
+                ShiMessage.error("ERROR!", data.Message);
+            }
+        })
+    }
+    function GetTheVisitorCheckin(ID) {
+        var isCard = $("#isCardMandatory").val()
+        if (isCard == "false") {
+            GetsearchByIDVisitor(ID)
+        }
+        else {
+            OpenModalVisitor(ID)
+        }
+    }
+    function OpenModalVisitor(id) {
+        $("#modalRegisterCard").modal("show");
+        $("#IdRegister").val(id);
+        $("#CardRegister").focus()
+    }
+    function GetTheVisitorCheckout(ID) {
+        GetsearchVisitorbyVisitorID(ID)
+    }
+    function RefreshArea() {
+        $("#@Html.IdFor(m => m.VisitLog.Area)").data("kendoDropDownList").dataSource.read();
+    }
+</script>
+
+<script id="VisitorCome">
+    function ShowSearchByID(data) {
+        $('#boxSearchById').hide("slow")
+        $('#boxDetailVisitor').show("slow")
+        $('#detailId').val(data.visitor.data.id);
+        $('#detailName').val(data.visitor.data.FullName);
+        $('#detailCompany').val(data.visitor.data.Company);
+        $('#detailPhone').val(data.visitor.data.Phone);
+        $('#detailEmail').val(data.visitor.data.Email);
+        $('#detailVehicleNo').val(data.visitor.data.VehicleNo);
+        $('#detailJobDesc').val(data.visitor.data.JobDesc);
+        var isPhoto = $("#isPhotoMandatory").val()
+        if (isPhoto == "true") {
+            CheckPhoto('@Url.Content("~/Uploads/PhotoVisitor/")' + data.visitor.data.Photo)
+        }
+        if (data.host.Success) {
+            $('#boxDetailHost').show("slow")
+            if (data.host.data.Status === "APPROVED" || data.host.data.Status === "CHECKOUT") {
+                $('#boxDetailVisitorPhoto').show("slow")
+            }
+            $('#HostLogId').val(data.host.data.LogId)
+            $('#HostId').val(data.host.data.UseID)
+            $('#HostDepartment').val(data.host.data.UseDep)
+            $('#HostName').val(data.host.data.UseNam)
+            $('#HostTel').val(data.host.data.UseTel)
+            $('#AppointmentStart').val(data.host.data.TimeStart)
+            $('#AppointmentEnd').val(data.host.data.TimeEnd)
+            $('#VisitorType').val(data.host.data.VisitorType)
+            $('#ApprovalHost').val(data.host.data.Status)
+            $('#Remark').val(data.host.data.Remark)
+            $("#RemarkCheckIn").focus()
+            if (data.host.data.NeedApprove.toUpperCase() == "FALSE") {
+                $("#VisitorType").css("background-color", "#00a65a");
+                $("#VisitorType").css("color", "white");
+            }
+            else {
+                $("#VisitorType").css("background-color", "#d73925");
+                $("#VisitorType").css("color", "white");
+            }
+        }
+        else {
+            toastr.warning("Data Host Not Found", "Warning!");
+            $('#rowCreateAppointment').show("slow");
+        }
+
+    }
+</script>
+<script id="VisitorInArea">
+    function ShowVisitorInArea(data) {
+        $("#boxDetailVisitorInArea").show("slow");
+        $("#inVisitorId").val(data.VisitorId)
+        $("#inLogId").val(data.LogId)
+        $("#inFullName").val(data.FullName)
+        $("#inCompany").val(data.Company)
+        $("#inStatus").val(data.Status)
+        $("#inHostName").val(data.HostName)
+        $("#inRemark").html(data.Remark)
+        if (data.Status === "CHECKIN") {
+            $("#rowVisitorBreak").show("slow");
+        }
+        else if (data.Status === "BREAK") {
+            $("#rowVisitorCheckIn").show("slow");
+        }
+    }
+    function SetShimanoBadge() {
+        $('#BoxSignInCard').show('slow')
+        $('#CardShimano').focus()
+    }
+    function CheckPhoto(src) {
+        var srcDef = '@Url.Content("~/Uploads/PhotoVisitor/no_image.png")';
+        checkSrcPhoto(src)
+          .on("error", function (e) {
+              $('#detailPhoto').attr('src', srcDef)
+              $('#BtnSignIn').prop("disabled", true);
+          })
+          .on("load", function (e) {
+              $('#detailPhoto').attr('src', src)
+          })
+    }
+    
+</script>
+<script>
+    function PostSaveCardRegister(id, CardId) {
+        DP.AJaxAll({ id: id, CardId: CardId }, '@Url.Action("PostSaveCardRegister", "Visitor")', function (data) {
+            if (data.Success === true) {
+                GetsearchByIDVisitor(id)
+            }
+            else {
+                ShiMessage.error(data.message, "Warning!");
+            }
+        })
+        @*$.ajax({
+            url: '@Url.Action("saveCardRegister", "Visitor")',
+            cache: false,
+            type: "POST",
+            data: { id: id, CardId: CardId },
+            success: function (data) {
+                if (data.Success === true) {
+                    toastr.success(data.Message, "Success!");
+                    SuccessRegisterCard();
+                    $("#CardScanned").val(CardId)
+                }
+                else {
+                    toastr.warning(data.message, "Warning!");
+                }
+            },
+            error: function () {
+                toastr.error("Something wrong with this, please call IT!", "ERROR!");
+            }
+
+        });*@
+    }
+</script>
+<script id="CameraPicture">
+    function OpenModalTakePhoto() {
+        $('#modalTakePhoto').modal("show");
+        $("#Camera").empty()
+        $("#imgToSubmit").prop("src", "@Url.Content("~/Uploads/PhotoVisitor/no_image.png")")
+        onOffCamera();
+    }
+    function checkSrcPhoto(src) {
+        return $("<img>").attr('src', src);
+    }
+    function onOffCamera() {
+        document.getElementById('btnSubmitPhoto').disabled = true;
+        $("#Camera").webcam({
+            width: '100%',
+            height: 360,
+            mode: "save",
+            swffile: "@Url.Content("~/Scripts/jscam.swf")",
+            onTick: function () { },
+        onSave: function () {
+            UploadPic();
+        },
+        onCapture: function () {
+            webcam.save("@Url.Content("~/Visitor/Capture")/" + $("#detailId").val());
+        },
+        debug: function () { },
+        onLoad: function () { }
+
+    });
+    }
+    function UploadPic() {
+        DP.AJaxAll({
+        }, ("@Url.Content("~/Visitor/Rebind")/"), function (data) {
+            if (data.Success) {
+                $("#imgToSubmit").attr("src", '@Url.Content("~/Uploads/PhotoVisitor/")' + data.data);
+                $("#photoSource").val(data.data);
+                document.getElementById('btnSubmitPhoto').disabled = false;
+                toastr.success("Photo Capture successfully!", "Success");
+            }
+        })
+    }
+    function savePhoto() {
+        var id = $("#detailId").val();
+        var src = $("#photoSource").val()
+        DP.AJaxAll({
+            id: id, src: src
+        }, '@Url.Action("SavePhotoVisitor", "Visitor")', function (data) {
+            if (data.Success === true) {
+                successSaveFunction();
+                toastr.sucess(data.Message, "success")
+            }
+            else {
+                ShiMessage.error("ERROR!", data.Message);
+            }
+        })
+    }
+    function successSaveFunction() {
+        $('#modalTakePhoto').modal("hide");
+        $('#BtnSignIn').prop('disabled', false);
+        $('#detailPhoto').prop("src", '@Url.Content("~/Uploads/PhotoVisitor/")' + $("#photoSource").val())
+    }
+</script>
+@if (TempData["SUCCESS"] != null)
+{
+    <script>
+    toastr.success('@TempData["MESSAGE"].ToString()', "SUCCESS!");
+    </script>
+
+}
+
+@{
+    Html.RenderPartial("VisitorActivity/_AddAppointment");
+    Html.RenderPartial("VisitorActivity/_AddVisitor");
+
+}

@@ -1,0 +1,540 @@
+﻿@model VMS.Web.Models.Disclaimer
+@{
+    ViewBag.Title = "Disclaimer";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<script src="~/Scripts/sweetalert2.js"></script>
+<script src="~/Scripts/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+       	            selector: "textarea",
+        	            plugins: [
+                           "advlist autolink lists link image charmap print preview anchor",
+       	                "searchreplace visualblocks code fullscreen",
+       	                "insertdatetime media table paste"
+            ],
+       	            toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+
+    });</script>
+<script>
+    $(document).ready(function () {
+        ShowDisclaimer();
+
+    })
+</script>
+
+
+<script>
+    function ShowDisclaimer() {
+        _ID = "";
+        var Search = $('#txtSearch').val(); //AreaName for Model/MasterData.cs
+        var table = $("#tableGrid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "ajax": {
+                "url": "@Url.Action("GetDisclaimerDatatables", "MasterData")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "Search": Search
+                    });
+                }
+            },
+
+            "columnDefs":
+                [{
+                    "targets": [0],
+                    "visible": true,
+                    "searchable": false
+                }],
+
+            "columns": [
+
+
+                {
+                    "data": "No",
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                { "data": "PlantName" },
+                { "data": "DisclaimerCategory" },
+                { "data": "ValidFrom"},
+                { "data": "ValidTo" },
+                { "data": "Type" },
+                {
+                    "data": "DisclaimerLinkFile",
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-danger"  onclick="window.open(`' + full.DisclaimerLinkFile + '`)"><i class="fa fa-1x fa-file-pdf-o"></i></button>';
+                    }
+                },
+                {
+                    "data": "DisclaimerDesc",
+                    "render": function (data, type, full, meta) {
+                        return '<div style="white-space:normal;width:200px;">' + full.DisclaimerDesc.substring(0, 50) + '...<b style="cursor: pointer;" onclick="ReadMoreDisclaimer(`' + full.DisclaimerDesc.replace("`","*#") + '`)">Read More</b></div>';
+                    },
+                },
+                { "data": "UpdateBy" },
+                { "data": "UpdateAt" },
+
+                {
+                    "render": function (data, type, full, meta) {
+                        return '<button class="btn btn-warning"  onclick="AddDisclaimer(`' + full.ID + '`,`' + full.Plant + '`,`' + full.DisclaimerCategory + '`,`' + full.Type + '`,`' + full._ValidFrom + '`,`' + full._ValidTo + '`,`' + full.DisclaimerDesc + '`)"><i class="fa fa-1x fa-edit"></i></button> <button class="btn btn-danger"  onclick="DisclaimerDelete(`' + full.ID + '`)"><i class="fa fa-1x fa-trash"></i></button>';
+                    }
+                },
+
+            ]
+        }
+        );
+    }
+</script>
+
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Disclaimer
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="col-md-6">
+                            <button class="btn btn-info" onclick="AddDisclaimer()"><i class="fa fa-plus"></i> New Disclaimer</button>
+                            <button class="btn btn-warning" onclick="EditDisclaimerOnly()">Edit Disclaimer</button>
+                            <a href="@Url.Action("DisclaimerArea", "MasterData")" class="btn btn-success">Disclaimer Area</a>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-4">
+                        @Html.Label("txtSearch", "Search")
+                        @Html.Kendo().TextBox().Name("txtSearch").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "ShowDisclaimer()" })
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-responsive" style="width:100%; margin:0 auto;">
+                            <table id="tableGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Plant</th>
+                                        <th>Disclaimer Category</th>
+                                        <th>Valid From</th>
+                                        <th>Valid To</th>
+                                        <th>Type</th>
+                                        <th>Doc</th>
+                                        <th>Disclaimer Desc</th>
+                                        <th>Last Update</th>
+                                        <th>Updated By</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalEdit">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            @*@using (Ajax.BeginForm("SaveDisclaimer", "MasterData",
+                                new AjaxOptions
+                                {
+                                    OnSuccess = "onSuccess",
+                                    OnFailure = "onFailure",
+                                    LoadingElementId = "progress",
+                                    OnBegin = "onLoading"
+                                }))
+                {*@
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">AddEdit</h3>
+            </div>
+            <div class="modal-body" id="myModalBodyDiv1">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.Plant, "Plant : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.Plant)
+                              .Filter("contains")
+                              .Placeholder("Select Plant...")
+                              .DataTextField("plantName")
+                              .DataValueField("plantId")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getPlantList", "MasterData");
+                                  });
+                              })
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DisclaimerCategory", "Disclaimer Category")
+                            @Html.TextBox("DisclaimerCategory", null, new { type = "text", @class = "form-control" })
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.Type, "Type : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.Type)
+                              .Filter("contains")
+                              .Placeholder("Select Type...")
+                              .DataTextField("Name")
+                              .DataValueField("Name")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getTypeDisclaimer", "MasterData");
+                                  });
+                              })
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.aValidFrom, "Valid From")<br />
+                            @(Html.Kendo().DatePickerFor(model => model.aValidFrom)
+                    .Start(CalendarView.Month)
+                    .Depth(CalendarView.Month)
+                    .Format("yyyy-MM-dd")
+                    .Value(DateTime.Today)
+                    .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.aValidTo, "Valid To")<br />
+                            @(Html.Kendo().DatePickerFor(model => model.aValidTo)
+                    .Start(CalendarView.Month)
+                    .Depth(CalendarView.Month)
+                    .Format("yyyy-MM-dd")
+                    .Value(DateTime.Today)
+                    .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("FileUpload", "Doc")
+                            @Html.TextBox("DisclaimerDoc", null, new { type = "file", @class = "input-file", accept = "application/pdf" })
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-md-12">
+                        <div class="k-content">
+                            @Html.Label("DisclaimerDesc", "Disclaimer Desc")
+                            @Html.TextArea("DisclaimerDesc", null, new { @class = "k-textbox", style = "width: 100%; padding:10px" })
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="btnSubmit" class="btn btn-success" onclick="saveDisclaimer()">
+                    <span id="btnLabel">Save</span>
+                </button>
+            </div>
+            @*}*@
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalEditDisclaimer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">Edit Disclaimer</h3>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.LabelFor(model => model.Plant, "Plant : ")<br />
+                            @(Html.Kendo().ComboBoxFor(model => model.PlantName)
+                              .Filter("contains")
+                              .Placeholder("Select Plant...")
+                              .DataTextField("plantName")
+                              .DataValueField("plantId")
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("getPlantList", "MasterData");
+                                  });
+                              })
+                              .Suggest(true)
+                              .HtmlAttributes(new { style = "width:100%;" })
+                                                        )
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" style="margin-top: 20px;">
+                        <div class="k-content">
+                            @Html.TextArea("DisclaimerDescOnly", null, new { @class = "k-textbox", style = "width: 100%; padding:10px" })
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="btnSubmitDisclaimer" class="btn btn-success" onclick="saveDisclaimerOnly()">
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMoreDisclaimer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" class="close" data-dismiss="modal">&times;</a>
+                <h4 class="modal-title" id="title">Disclaimer</h4>
+            </div>
+            <div class="modal-body">
+                <span id="diclaimerfull" style="font-size: large;"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function EditDisclaimerOnly() {
+        $("#modalEditDisclaimer").modal("show");
+    }
+
+    function saveDisclaimerOnly() {
+        var Plant = $("#@Html.IdFor(model => model.PlantName)").data("kendoComboBox").value();
+        var DisclaimerDesc = tinymce.get("DisclaimerDescOnly").getContent();
+        if (Plant == "") {
+            toastr.error("Please select Plant")
+        } else if (DisclaimerDesc == "" || DisclaimerDesc == "<p></p>") {
+            toastr.error("Please input Description")
+        } else {
+
+            $("#btnSubmitDisclaimer").attr("disabled", true);
+            var fileData = new FormData();
+            fileData.append('Plant', Plant);
+            fileData.append('DisclaimerDesc', DisclaimerDesc.replace("'", "`"));
+
+            $.ajax({
+                url: '@Url.Action("SaveDisclaimerOnly", "MasterData")',
+                method: "POST",
+                contentType: false,
+                processData: false,
+                traditional: true,
+                data: fileData,
+                success: function (j) {
+                    if (j.Result == true) {
+                        toastr[j.Data[0][0].Status](j.Data[0][0].Message)
+                        if (j.Data[0][0].Status == "success") {
+                            ShowDisclaimer();
+                        }
+                    }
+                    else {
+                        toastr.error("Failed, Please contact IT")
+                    }
+                    $("#btnSubmitDisclaimer").attr("disabled", false);
+                    $("#modalEditDisclaimer").modal("hide");
+                },
+                error: function (xhr, error, text) {
+                    toastr.error("Failed Query, Please contact IT")
+                    $("#btnSubmitDisclaimer").attr("disabled", false);
+                }
+            });
+        }
+    }
+
+    var _ID = "";
+    function AddDisclaimer(ID, Plant, Category, Type, From, To, Desc) {
+        if (ID == null)
+            ID = "";
+
+        $("#modalEdit").modal("show");
+        if (ID != "") {
+            _ID = ID;
+            $("#title").html("Edit Disclaimer");
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").value(Plant);
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").readonly(true);
+            $('#DisclaimerCategory').val(Category);
+            $("#@Html.IdFor(model => model.Type)").data("kendoComboBox").value(Type);
+            $("#@Html.IdFor(model => model.aValidFrom)").val(From);
+            $("#@Html.IdFor(model => model.aValidTo)").val(To);
+            tinymce.get("DisclaimerDesc").setContent(Desc);
+        }
+        else {
+            _ID = "";
+            $("#title").html("Add Disclaimer");
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").readonly(false);
+            $('#DisclaimerCategory').val("");
+            $("#@Html.IdFor(model => model.Type)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.aValidFrom)").val("");
+            $("#@Html.IdFor(model => model.aValidTo)").val("");
+            tinymce.get("DisclaimerDesc").setContent("<p></p>");
+        }
+    }
+
+    function saveDisclaimer() {
+
+        var Plant = $("#@Html.IdFor(model => model.Plant)").data("kendoComboBox").value();
+        var DisclaimerCategory = $('#DisclaimerCategory').val();
+        var Type = $("#@Html.IdFor(model => model.Type)").data("kendoComboBox").value();
+        var ValidFrom = $("#@Html.IdFor(model => model.aValidFrom)").val();
+        var ValidTo = $("#@Html.IdFor(model => model.aValidTo)").val();
+        var DisclaimerDesc = tinymce.get("DisclaimerDesc").getContent();
+        var file = document.getElementById("DisclaimerDoc").files[0];
+        if ((file != undefined && _ID == "") || _ID != "") {
+            let extension = "";
+            if (file != undefined) {
+                extension = file.name.split(".").pop();
+            }
+            if (Plant == "") {
+                toastr.error("Please select Plant")
+            } else if (DisclaimerCategory == "") {
+                toastr.error("Please input Disclaimer Category")
+            } else if (Type == "" || Type == null) {
+                toastr.error("Please select Type")
+            } else if (DisclaimerDesc == "" || DisclaimerDesc == "<p></p>") {
+                toastr.error("Please input Description")
+            } else {
+                if (file != undefined && extension != "pdf") {
+                    toastr.warning("Sorry..! Only pdf files are allowed")
+                } else {
+
+                    $("#btnSubmit").attr("disabled", true);
+                    var fileData = new FormData();
+
+                    fileData.append('ID', _ID);
+                    fileData.append('Plant', Plant);
+                    fileData.append('DisclaimerCategory', DisclaimerCategory.replace("'", "`"));
+                    fileData.append('Type', Type);
+                    fileData.append('ValidFrom', ValidFrom);
+                    fileData.append('ValidTo', ValidTo);
+                    fileData.append('DisclaimerDesc', DisclaimerDesc.replace("'", "`"));
+                    fileData.append('file', file);
+
+                    $.ajax({
+                        url: '@Url.Action("SaveDisclaimer", "MasterData")',
+                        method: "POST",
+                        contentType: false,
+                        processData: false,
+                        traditional: true,
+                        data: fileData,
+                        success: function (j) {
+                            if (j.Result == true) {
+                                toastr[j.Data[0][0].Status](j.Data[0][0].Message)
+                                if (j.Data[0][0].Status == "success") {
+                                    ShowDisclaimer();
+                                }
+                            }
+                            else {
+                                toastr.error("Failed, Please contact IT")
+                            }
+                            _ID = "";
+                            $("#btnSubmit").attr("disabled", false);
+                            $("#modalEdit").modal("hide");
+                        },
+                        error: function (xhr, error, text) {
+                            toastr.error("Failed Query, Please contact IT")
+                            $("#btnSubmit").attr("disabled", false);
+                        }
+                    });
+                }
+            }
+        } else {
+            toastr.warning("Please choose doc disclaimer..")
+        }
+    }
+
+    function DisclaimerDelete(id) {
+        Swal.fire({
+            title: 'Are you sure!',
+            text: "Do you want to detele this item?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.value == true) {
+                if (id != null && id != '') {
+                    $.ajax({
+                        url: '@Url.Action("DeleteDisclaimer", "MasterData")',
+                        method: "POST",
+                        dataType: "JSON",
+                        data: {
+                            ID: id,
+                        },
+                        success: function (j) {
+                            if (j.Result == true) {
+                                toastr.success(j.Data[0][0].Message)
+                                ShowDisclaimer();
+                            }
+                            else {
+                                toastr.error("Delete Fail, Please contact IT")
+                            }
+                        },
+                        error: function (xhr, error, text) {
+                            toastr.error("Failed Query Delete, Please contact IT")
+                        }
+                    });
+                } else {
+                    toastr.error("ID Not Found, Please reload this page or contact IT")
+                }
+            }
+        })
+    }
+
+    function ReadMoreDisclaimer(Desc) {
+        $("#modalMoreDisclaimer").modal("show");
+        $("#diclaimerfull").html(Desc.replace("*#", "'"));
+    }
+
+</script>
+@{
+    Html.RenderPartial("_MDLoader");
+}
+

@@ -1,0 +1,429 @@
+﻿@model VMS.Web.Models.VisitType
+@{
+    ViewBag.Title = "Area";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+
+<script>
+    $(document).ready(function () {
+        ShowVisitor();
+    })
+</script>
+
+
+<script>
+
+    function ShowVisitor() {
+        var AreaName = $('#txtSearch').val();
+        var table = $("#tableGrid").DataTable({
+            destroy: true,
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "ajax": {
+                "url": "@Url.Action("GetAVisitorTypeDatatables", "MasterData")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "AreaName": AreaName
+                    });
+                }
+             },
+
+                "columnDefs":
+                [{
+                    "targets": [1],
+                    "visible": false,
+                    "searchable": false
+                }],
+
+    "columns": [
+
+
+        {
+            "data": "No",
+            render: function (data, type, row, meta) {
+                return meta.row + meta.settings._iDisplayStart + 1;
+            }
+        },
+        { "data": "Id", "name": "Id", "autoWidth": true },
+        { "data": "VisitorType", "name": "VisitorType", "title": "Visitor Type", "autoWidth": true },
+        { "data": "NeedApprove", "name": "NeedApprove", "title": "Approval", "autoWidth": true },
+        { "data": "NeedMailAlert", "name": "NeedMailAlert", "title": "Email Alert", "autoWidth": true },
+        { "data": "AllowUnknown", "name": "AllowUnknown", "title": "Allow Unknown", "autoWidth": true },
+        { "data": "IsView", "name": "IsView", "title": "Public View", "autoWidth": true },
+         {
+             "render": function (data, type, full, meta) {
+                 return '<div class="row"><div class="col-md-12"><div class="col-md-4"><button class="btn btn-info"  onclick="AddEditVisitorType(' + full.Id + ')"><i class="fa fa-1x fa-edit"></i> Edit</button></div><div class="col-md-4"> <button class="btn btn-info" onclick="GoToApprovalLevel(\'' + full.VisitorType + '\')"><i class="fa fa-1x fa-eye"></i> View</button></div></div></div>';
+             }
+         },
+
+    ]
+    }
+        );
+    }
+</script>
+<script id="ExportData">
+    function ExportData() {
+        window.open("@Url.Action("ExportFunction", "MasterData")?MasterData=VisitorType&Plant=&Department=");
+    }
+</script>
+
+<div class="row" id="rowGrid">
+    <div class="col-md-12" id="BoxArea">
+        <div class="box ShimanoBox">
+            <div class="box-header">
+                Visitor Type
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                            title="Collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="col-md-3">
+                            <button class="btn btn-info" onclick="AddEditVisitorType(0)"><i class="fa fa-plus"></i> Add Visitor Type</button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-warning" onclick="ExportData()"><i class="fa fa-download"></i> Export</button>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="tableGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Id</th>
+                                        <th>Visitor Type</th>
+                                        <th>Approval</th>
+                                        <th>Email Alert</th>
+                                        <th>Allow Unknown</th>
+                                        <th>Public View</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalEdit">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @*@using (Ajax.BeginForm("SaveVisitorType", "MasterData",
+                            new AjaxOptions
+                            {
+                                OnSuccess = "onSuccess",
+                                OnFailure = "onFailure",
+                                LoadingElementId = "progress",
+                                OnBegin = "onLoading"
+                            }))
+            {*@
+                <div class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="title">AddEdit Race</h3>
+                </div>
+                <div class="modal-body" id="myModalBodyDiv1">
+                    @Html.HiddenFor(m=>m.Id)
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.VisitorType, "Visitor Type : ")<br />
+                                @(Html.Kendo()
+.TextBoxFor(model => model.VisitorType)
+.HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Type" }))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NeedApprove, "Is Need Approve : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NeedApprove)
+                              .Placeholder("Select Approve...")
+                              .DataTextField("Text")
+                              .DataValueField("Value")
+                              .BindTo(new List<SelectListItem>() {
+                                  new SelectListItem() {
+                                    Text = "TRUE", Value = "1"
+                                  },
+                                  new SelectListItem() {
+                                    Text = "FALSE", Value = "0"
+                                  }
+                              })
+                              .HtmlAttributes(new { style = "width:100%;" })
+
+                                                    )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.NeedMailAlert, "Is Need Mail Alert : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.NeedMailAlert)
+                              .Placeholder("Select Mail Alert...")
+                              .DataTextField("Text")
+                              .DataValueField("Value")
+                              .BindTo(new List<SelectListItem>() {
+                                  new SelectListItem() {
+                                    Text = "TRUE", Value = "1"
+                                  },
+                                  new SelectListItem() {
+                                    Text = "FALSE", Value = "0"
+                                  }
+                              })
+                              .HtmlAttributes(new { style = "width:100%;" })
+
+                                )
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.AllowUnknown, "Allow Unknown : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.AllowUnknown)
+                              .Placeholder("Select Allow Unknown...")
+                              .DataTextField("Text")
+                              .DataValueField("Value")
+                              .BindTo(new List<SelectListItem>() {
+                                  new SelectListItem() {
+                                    Text = "TRUE", Value = "1"
+                                  },
+                                  new SelectListItem() {
+                                    Text = "FALSE", Value = "0"
+                                  }
+                              })
+                              .HtmlAttributes(new { style = "width:100%;" })
+
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="k-content">
+                                @Html.LabelFor(model => model.IsView, "Public View : ")<br />
+                                @(Html.Kendo().ComboBoxFor(model => model.IsView)
+                              .Placeholder("Select Public View...")
+                              .DataTextField("Text")
+                              .DataValueField("Value")
+                              .BindTo(new List<SelectListItem>() {
+                                  new SelectListItem() {
+                                    Text = "TRUE", Value = "1"
+                                  },
+                                  new SelectListItem() {
+                                    Text = "FALSE", Value = "0"
+                                  }
+                              })
+                              .HtmlAttributes(new { style = "width:100%;" })
+
+                                )
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button id="btnSubmit" class="btn btn-success" onclick="SaveData();">
+                        <span id="btnLabel">Save</span>
+                    </button>
+                </div>
+            @*}*@
+
+        </div>
+
+    </div>
+
+</div>
+<script>
+    function AddEditVisitorType(Id) {
+        $("#modalEdit").modal("show");
+        if (Id > 0) {
+            $("#title").html("Edit Visitor Type");
+            $("#btnLabel").html("Update");
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetVisitorTypeDetail", "MasterData")',
+                data: { Id: Id },
+                success: function (data) {
+                    var isApprove = data.NeedApprove.toUpperCase() === "TRUE" ? "1" : "0";
+                    var isMailAlert = data.NeedMailAlert.toUpperCase() === "TRUE" ? "1" : "0";
+                    var isAllowUnknown = data.AllowUnknown.toUpperCase() === "TRUE" ? "1" : "0";
+                    var IsView = data.IsView.toUpperCase() === "TRUE" ? "1" : "0";
+                    $("#@Html.IdFor(model => model.Id)").val(data.Id);
+                    $("#@Html.IdFor(model => model.VisitorType)").val(data.VisitorType);
+                    $("#@Html.IdFor(model => model.NeedApprove)").data("kendoComboBox").value(isApprove);
+                    $("#@Html.IdFor(model => model.NeedMailAlert)").data("kendoComboBox").value(isMailAlert);
+                    $("#@Html.IdFor(model => model.AllowUnknown)").data("kendoComboBox").value(isAllowUnknown);
+                    $("#@Html.IdFor(model => model.IsView)").data("kendoComboBox").value(IsView)
+                }
+            });
+        }
+        else {
+            $("#title").html("Add Visitor Type");
+            $("#btnLabel").html("Save");
+            $("#@Html.IdFor(model => model.Id)").val(0);
+            $("#@Html.IdFor(model => model.VisitorType)").val("".VisitorType);
+            $("#@Html.IdFor(model => model.NeedApprove)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.NeedMailAlert)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.AllowUnknown)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.IsView)").data("kendoComboBox").select(-1)
+        }
+    }
+    function GoToApprovalLevel(visitorType)
+    {
+        @*window.open("@Url.Action("ApprovalLevel", "MasterData")?VisitorType=" + visitorType")";*@
+        window.location.assign('@Url.Action("ApprovalLevel", "MasterData")?VisitorType=' + visitorType + ' ');
+    }
+</script>
+<script>
+    function SaveData()
+    {
+        var VisitorType = $("#@Html.IdFor(model => model.VisitorType)").val();
+        var IsNeedApprove = $("#@Html.IdFor(model => model.NeedApprove)").data("kendoComboBox").value();
+        var IsNeedMailAlert = $("#@Html.IdFor(model => model.NeedMailAlert)").data("kendoComboBox").value();
+        var IsAllowUnknown = $("#@Html.IdFor(model => model.AllowUnknown)").data("kendoComboBox").value();
+        var IsView = $("#@Html.IdFor(model => model.IsView)").data("kendoComboBox").value();
+        var id = $("#@Html.IdFor(model => model.Id)").val();
+        if (VisitorType == "")
+        {
+            toastr.error("Visitor Type cannot empty.");
+            return;
+        }
+        else if (IsNeedApprove == "")
+        {
+            toastr.error("Please select Is Need Approve.");
+            return;
+        }
+        else if (IsNeedMailAlert == "") {
+            toastr.error("Please select Is Need Mail Alert.");
+            return;
+        }
+        else if (IsAllowUnknown == "") {
+            toastr.error("Please select Is Allow Unknown.");
+            return;
+        }
+        else if (IsView == "") {
+            toastr.error("Please select Is Public View.");
+            return;
+        }
+        else
+        {
+            if ($("#btnLabel").text() == "Save")
+            {
+                $.ajax({
+                    url: '@Url.Action("CheckVisitorTypeName", "MasterData")',
+                    method: "POST",
+                    dataType: "JSON",
+                    data: {
+                        visitortype: VisitorType,
+                    },
+                    success: function (j) {
+                        console.log(j.xdataTable);
+                        console.log(j.xdataTable[0].id);
+                        if (j.xdataTable[0].id == 0) {
+                            console.log(id, VisitorType, IsNeedApprove, IsNeedMailAlert, IsAllowUnknown, IsView);
+                            $.ajax({
+                                type: "POST",
+                                url: '@Url.Action("SaveVisitorType", "MasterData")',
+                                data: {
+                                    ID: id,
+                                    VisitorType: VisitorType,
+                                    NeedApprove: IsNeedApprove,
+                                    NeedMailAlert: IsNeedMailAlert,
+                                    AllowUnknown: IsAllowUnknown,
+                                    IsView: IsView,
+
+                                },
+                                success: function (data) {
+                                    console.log(data);
+                                    if (data.Success === true) {
+                                        //PopulateDelegation();
+                                        ShowVisitor();
+                                        $("#modalEdit").modal("hide");
+                                        toastr.success("Successfully save visitor type.", "Save Visitor Type");
+                                    }
+                                    else {
+                                        toastr.error(data.Message, "Failed save to database!");
+                                    }
+
+                                },
+                                error: function () {
+                                    toastr.error("Something wrong with this, please call IT!", "Save Delegation");
+                                }
+                            });
+                        }
+                        else {
+                            toastr.error("Visitor Type " + VisitorType + " already exists.");
+                        }
+                    },
+                    error: function (xhr, error, text) {
+                        toastr.error("Failed get child process, Please contact IT");
+                    }
+                })
+            }
+            else
+            {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveVisitorType", "MasterData")',
+                    data: {
+                        ID: id,
+                        VisitorType: VisitorType,
+                        NeedApprove: IsNeedApprove,
+                        NeedMailAlert: IsNeedMailAlert,
+                        AllowUnknown: IsAllowUnknown,
+                        IsView: IsView,
+
+                    },
+                    success: function (data) {
+                        console.log(data);
+                        if (data.Success === true) {
+                            //PopulateDelegation();
+                            ShowVisitor();
+                            $("#modalEdit").modal("hide");
+                            toastr.success("Successfully update visitor type.", "Updated Visitor Type");
+                        }
+                        else {
+                            toastr.error(data.Message, "Failed update to database!");
+                        }
+
+                    },
+                    error: function () {
+                        toastr.error("Something wrong with this, please call IT!", "Save Delegation");
+                    }
+                });
+            }
+
+        }
+
+
+    }
+</script>
+@{
+    Html.RenderPartial("_MDLoader");
+}

@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="DBVisitorMSModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="EPDetail">
+    <Key>
+      <PropertyRef Name="DetailId" />
+    </Key>
+    <Property Name="DetailId" Type="Guid" Nullable="false" />
+    <Property Name="MasterId" Type="Guid" Nullable="false" />
+    <Property Name="UseID" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="EPMaster" Relationship="Self.FK_EPDetails_OrderMaster" FromRole="EPDetails" ToRole="EPMaster" />
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+  </EntityType>
+  <EntityType Name="EPMaster">
+    <Key>
+      <PropertyRef Name="MasterId" />
+    </Key>
+    <Property Name="MasterId" Type="Guid" Nullable="false" />
+    <Property Name="SENo" Type="Int32" Nullable="false" />
+    <Property Name="EPNo" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="UseDep" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="PlantID" Type="String" MaxLength="250" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Destination" Type="String" MaxLength="250" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Date" Type="DateTime" Nullable="false" Precision="0" />
+    <Property Name="Out" Type="Time" Nullable="false" Precision="7" />
+    <Property Name="In" Type="Time" Nullable="false" Precision="7" />
+    <Property Name="CompTrans" Type="Boolean" Nullable="false" />
+    <Property Name="CompTransTime" Type="Time" Precision="7" />
+    <Property Name="Status" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="EPDetails" Relationship="Self.FK_EPDetails_OrderMaster" FromRole="EPMaster" ToRole="EPDetails" />
+    <Property Name="ActOut" Type="Time" Precision="7" />
+    <Property Name="ActIn" Type="Time" Precision="7" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="CreatedDate" Type="DateTime" Precision="0" />
+    <Property Name="UpdateBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="UpdateDate" Type="DateTime" Precision="0" />
+  </EntityType>
+  <Association Name="FK_EPDetails_OrderMaster">
+    <End Role="EPMaster" Type="Self.EPMaster" Multiplicity="1" />
+    <End Role="EPDetails" Type="Self.EPDetail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="EPMaster">
+        <PropertyRef Name="MasterId" />
+      </Principal>
+      <Dependent Role="EPDetails">
+        <PropertyRef Name="MasterId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="DBVisitorMSEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="EPDetails" EntityType="Self.EPDetail" />
+    <EntitySet Name="EPMasters" EntityType="Self.EPMaster" />
+    <AssociationSet Name="FK_EPDetails_OrderMaster" Association="Self.FK_EPDetails_OrderMaster">
+      <End Role="EPMaster" EntitySet="EPMasters" />
+      <End Role="EPDetails" EntitySet="EPDetails" />
+    </AssociationSet>
+    <EntitySet Name="DODetails" EntityType="DBVisitorMSModel.DODetail" />
+    <EntitySet Name="DOMasters" EntityType="DBVisitorMSModel.DOMaster" />
+    <AssociationSet Name="FK_DODetails_DOMaster" Association="DBVisitorMSModel.FK_DODetails_DOMaster">
+      <End Role="DOMaster" EntitySet="DOMasters" />
+      <End Role="DODetail" EntitySet="DODetails" />
+    </AssociationSet>
+    <EntitySet Name="NewsMasters" EntityType="DBVisitorMSModel.NewsMaster" />
+  </EntityContainer>
+  <EntityType Name="DODetail">
+    <Key>
+      <PropertyRef Name="DetailId" />
+    </Key>
+    <Property Name="DetailId" Type="Guid" Nullable="false" />
+    <Property Name="MasterId" Type="Guid" Nullable="false" />
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Product" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="Quantity" Type="Int32" Nullable="false" />
+    <Property Name="Remark" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="IsReturned" Type="Boolean" Nullable="false" />
+    <Property Name="ReturnedBy" Type="DateTime" Precision="0" />
+    <Property Name="ReturnedDate" Type="DateTime" Precision="0" />
+    <Property Name="Photo" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="DOMaster" Relationship="DBVisitorMSModel.FK_DODetails_DOMaster" FromRole="DODetail" ToRole="DOMaster" />
+    <Property Name="UpdateBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="UpdateDate" Type="DateTime" Precision="0" />
+  </EntityType>
+  <EntityType Name="DOMaster">
+    <Key>
+      <PropertyRef Name="MasterId" />
+    </Key>
+    <Property Name="MasterId" Type="Guid" Nullable="false" />
+    <Property Name="SENo" Type="Int32" Nullable="false" />
+    <Property Name="DONo" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+    <Property Name="UseDep" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="UseID" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="ReqDate" Type="DateTime" Nullable="false" Precision="0" />
+    <Property Name="Address" Type="String" Nullable="false" MaxLength="250" FixedLength="false" Unicode="true" />
+    <Property Name="DelVia" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="DriName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="VechNo" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="TimeOut" Type="Time" Precision="7" />
+    <Property Name="ContainerNo" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="SealNo" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="ReceiverName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="ReceivedDate" Type="DateTime" Precision="0" />
+    <Property Name="ReceivedPic" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="SecurityCheck" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="SecurityPic" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <Property Name="ManagerApprove" Type="Boolean" />
+    <Property Name="Status" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="DODetails" Relationship="DBVisitorMSModel.FK_DODetails_DOMaster" FromRole="DOMaster" ToRole="DODetail" />
+    <Property Name="UpdateBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="UpdateDate" Type="DateTime" Precision="0" />
+  </EntityType>
+  <Association Name="FK_DODetails_DOMaster">
+    <End Type="DBVisitorMSModel.DOMaster" Role="DOMaster" Multiplicity="1" />
+    <End Type="DBVisitorMSModel.DODetail" Role="DODetail" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DOMaster">
+        <PropertyRef Name="MasterId" />
+      </Principal>
+      <Dependent Role="DODetail">
+        <PropertyRef Name="MasterId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="NewsMaster">
+    <Key>
+      <PropertyRef Name="MasterId" />
+    </Key>
+    <Property Name="MasterId" Type="Guid" Nullable="false" />
+    <Property Name="NewsId" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="Header" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="CreatedBy" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="CreatedDate" Type="DateTime" Precision="0" />
+    <Property Name="Status" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="Viewer" Type="Int32" />
+    <Property Name="BodyTEXT" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="BodyHTML" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="FeaturedImage" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+  </EntityType>
+</Schema>

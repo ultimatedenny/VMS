@@ -1,0 +1,113 @@
+﻿@model VMS.Web.Models.DODetail
+@Scripts.Render("~/Mousetrap")
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+
+<div class="form-horizontal">
+    <form id="myForm1">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <table>
+            <td>
+                <dt>
+                    <a>Product </a>
+                </dt>
+                <dt>
+                    <a>Quantity </a>
+                </dt>
+                <dt>
+                    <a>Remark </a>
+                </dt>
+                <dt>
+                    <a>Is Returned </a>
+                </dt>
+                <dt>
+                    <a>Returned By </a>
+                </dt>
+                <dt>
+                    <a>Photo </a>
+                </dt>
+            </td>
+            <td>
+                <dt>
+                    : @Html.DisplayFor(model => model.Product)
+                </dt>
+                <dt>
+                    : @Html.DisplayFor(model => model.Quantity)
+                </dt>
+                <dt>
+                    : @Html.DisplayFor(model => model.Remark)
+                </dt>
+                <dt>
+                    : @Html.DisplayFor(model => model.IsReturned)
+                </dt>
+                <dt>
+                    : @Html.DisplayFor(model => model.ReturnedBy)
+                </dt>
+                <dt>
+                    :
+                </dt>
+            </td>
+        </table>
+        <div>
+            <img src="@Url.Content("~/uploads/DOItem/" + @Html.DisplayFor(model => model.Photo) + "")" alt="IMAGES" width="160" height="120" />
+        </div>
+        <hr>
+        @Html.HiddenFor(model => model.DetailId)
+        @Html.HiddenFor(model => model.MasterId)
+        @Html.HiddenFor(model => model.Id)
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.Label("DriName", "Date of Return :")
+                @(Html.Kendo().DatePickerFor(model => model.ReturnedDate)
+                                .Name("ReturnedDate")
+                                .Min(DateTime.Now)
+                                .Max(DateTime.Now)
+                                .Format("yyyy-MM-dd")
+
+                                .HtmlAttributes(new { @class = "form-control",
+                                                           style = "width:100%",
+                                                           required = "required",
+                                                           data_required_msg = "Please Fill the Type" }))
+            </div>
+        </div>
+        <br />
+        <div class="form-group">
+            <div class="col-md-12">
+                <a href="#" id="btnSubmit" class="btn btn-success btn-block">
+                    <span>Update</span>
+                </a>
+            </div>
+        </div>
+    </form>
+    <script>
+    $("#btnSubmit").click(function () {
+        if ($("#ReturnedDate").val() == "")
+        {
+            toastr.error("Please fill Date of Return", "Error");
+        }
+        else
+        {
+            var myformdata = $("#myForm1").serialize();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ItemReturn", "DeliveryOrder")',
+                data: myformdata,
+                success: function () {
+                    alert("UPDATING SUCCESS")
+                    $("#SecurityCheckModal").modal("hide");
+                    location.reload();
+                },
+                error: function () {
+                    alert("UPDATING SUCCESS")
+                    $("#SecurityCheckModal").modal("hide");
+                    location.reload();
+                }
+            })
+        }
+    })
+
+    </script>
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

@@ -1,0 +1,903 @@
+﻿@using VMS.Web.Models
+@{
+    ViewBag.Title = "Approval Level";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<style>
+    .k-grid {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    td.details-control {
+        background: url('https://raw.githubusercontent.com/DataTables/DataTables/1.10.7/examples/resources/details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+    tr.shown td.details-control {
+        background: url('https://raw.githubusercontent.com/DataTables/DataTables/1.10.7/examples/resources/details_close.png') no-repeat center center;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+
+                    <div class="col-md-12">
+                        
+                        <div class="row">
+                            
+                                <div class="col-md-2">
+                                    <div class="k-content">
+                                        @Html.Label("VisitorType", "Visitor Type")
+                                        <select id="VisitorType" class="form-control" onchange="getData()">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>13</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="k-content">
+                                        @Html.Label("Plant", "Plant")
+                                        <select id="Plant" class="form-control" onchange="getData()">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>13</option>
+                                        </select>
+                                    </div>
+                                    @*<div class="k-content">
+                                        @Html.Label("Plant", "Plant")
+                                        @Html.Kendo().DropDownList().Name("Plant").OptionLabel("Select Plant...").HtmlAttributes(new { style = "width: 100%", @class = "", data_required_msg = "Please Select the Plant" }).DataTextField("plantName").DataValueField("plantId").DataSource(source => { source.Read(read => { read.Action("getPlantList", "MasterData"); }); }).Events(e => e.Change("GenerateHisGrid")).Value(Session["UsePlant"].ToString())
+                                    </div>*@
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="k-content">
+                                        @Html.Label("Department", "Department")
+                                        <select id="Department" class="form-control" onchange="getData()">
+                                            @*<option>1</option>
+                                            <option>2</option>
+                                            <option>13</option>*@
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div style="padding-top:25px">
+                                        <button type="submit" class="btn btn-primary" onclick="AddEditVisitorType(0,0,0,0,0,0,0,'Add')"><i class="fa fa-plus-circle"></i> Add</button>
+                                        <button type="submit" class="btn btn-info" onclick="getData()"><i class="fa fa-info-circle"></i> Show</button>
+                                        <button type="submit" class="btn btn-warning"><i class="fa fa-cloud-upload"></i> Import</button>
+                                        <button type="submit" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Export</button>
+                                    </div>
+                                </div>
+                        </div><br />
+                        <hr />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <table class="table table-bordered table-hover table-checkable" id="mmApprovalLevelTable" style="margin-top: 13px !important">
+                                    <thead>
+                                        <tr style="color:white;background-color:#30505F;border-color:Transparent;font-weight:bold;">
+                                            <th></th>
+                                            <th>Plant</th>
+                                            <th>Visitor Type</th>
+                                            <th>Department</th>
+                                            <th>Update By</th>
+                                            <th>Update Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div id="contact" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 class="modal-title" id="title">Approval Level:</h3>
+            </div>
+
+            <form id="contact-form" class="form-horizontal modal-body" role="form">
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Plant <sup style="color:red">*</sup></label>
+
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="PlantModal" class="form-control" required >
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3"> Visitory Type <sup style="color:red">*</sup></label>
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="VisitorTypeModal" class="form-control" required >
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Department <sup style="color:red">*</sup></label>
+
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="DepartmentModal" class="form-control" required >
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Category <sup style="color:red">*</sup></label>
+
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="CategoryModal" class="form-control" required onchange="GetApprovalLevel()">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Windows ID <sup style="color:red">*</sup></label>
+
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="WindowsIDModal" class="form-control" required onchange="GetApprovalLevel()">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Approval Level <sup style="color:red">*</sup></label>
+                    <div class="col-sm-9">
+                        <div>
+                            <select id="ApprovalLevelModal" class="form-control" required>
+                                <option>1</option>
+                                <option>2</option>
+                                <option>13</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+
+                    <label class="control-label col-sm-3">Remarks</label>
+
+                    <div class="col-sm-9">
+                        <div >
+                            <textarea class="form-control" rows="3" type="text" placeholder="Your remark" name="message" id="RemarksModal"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <div class="text-right" style="padding-right:10px;">
+                        <button type="submit" class="btn btn-success btn-md" id="btnLabel" onclick="funcSave(); return false;">Save! <i class="fa fa-save"></i></button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        dllVisitorType();
+        dllPlant();
+        
+        dllCategoryModal();
+        dllVisitorTypeModal();
+        dllPlantModal();
+        dllDepartmentModal();
+        dllWindowsIDModal();
+
+        funcRenderTable();
+
+        $('#Plant').change(function () {
+            dllDepartment($(this).val());
+        });
+        $(window).keydown(function (event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                return false;
+            }
+        });
+        $("#ApprovalLevelModal").on("keypress keyup blur", function (event) {
+            $(this).val($(this).val().replace(/[^\d].+/, ""));
+            if ((event.which < 48 || event.which > 57)) {
+                event.preventDefault();
+            }
+            if($(this).val() < 1)
+            {
+                alert("Approval level cannot less than 1!");
+                $("#ApprovalLevelModal").val('1');
+                return false;
+            }
+        });
+    });
+</script>
+<script>
+    function dllVisitorType()
+    {
+        var DDLVisitorType = $('#VisitorType');
+        DDLVisitorType.empty();
+        $.ajax({
+            url: '@Url.Action("getVisitTypeList", "MasterData")',
+            data: {
+                //Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //console.log(data);
+                //datas = data;
+                div = "<option selected value=''>All</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].VisitorType + "'>" + data[i].VisitorType + "</option>"
+                }
+                DDLVisitorType.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function dllDepartment(Plant) {
+        var DDLDepartment = $('#Department');
+        DDLDepartment.empty();
+        $.ajax({
+            url: '@Url.Action("GetDepartmentApprovalLevelDDList", "MasterData")',
+            data: {
+                Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //console.log(data);
+                //datas = data;
+                div = "<option selected value=''>All</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                }
+                DDLDepartment.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function dllPlant() {
+        var DDLPlant = $('#Plant');
+        DDLPlant.empty();
+        $.ajax({
+            url: '@Url.Action("getPlantList", "MasterData")',
+            data: {
+                //Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                console.log(data);
+                //datas = data;
+                div = "<option selected value=''>All</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                }
+                DDLPlant.append(div);
+                dllDepartment();
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    </script>
+<script>
+    //generate datatable
+    function funcRenderTable() {
+        var table = "";
+        var options = "";
+
+        // begin first table
+        options = {
+            responsive: true,
+            paging: true,
+            
+            columns: [
+                {
+                    "class": 'details-control',
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": ''
+                },
+                { "data": "Plant" },
+                { "data": "VisitorType" },
+                { "data": "Department" },
+                { "data": "ChangeUser" },
+                { "data": "ChangeDate" },
+                { "data": null },
+            ],
+            columnDefs: [
+                {
+                    targets: 6,
+                    render: function (data, type, full, meta) {
+                        var output = ``;
+                        output = '<div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">'
+                        output += '          <div class="btn-group mr-2" role="group" aria-label="First group">'
+                        output += '             <button class="btn btn-info"  onclick="AddEditVisitorType(\'' + full.ID + '\', \'' + full.Plant + '\',\'' + full.VisitorType + '\',\'' + full.Department + '\',\'' + full.ApprovalLevel + '\',\'' + full.WindowsID + '\',\'' + full.Category + '\',\''+ '\', \'Add\')"><i class="fa fa-1x fa-plus"></i> Add</button>'
+                        output += '             <button class="btn btn-danger"  onclick="funcDelete(\'' + full.Plant + '\',\'' + full.VisitorType + '\',\'' + full.Department + '\')"><i class="la la-trash">Delete</i></button>'
+                        output += '         </div>'
+                        output += '        </div>'
+                        return output;
+                    },
+                },
+            ],
+        };
+
+        table = $('#mmApprovalLevelTable').DataTable(options);
+        mmApprovalLevelTable.mDataTable = table;
+
+        //CHILD
+        $('#mmApprovalLevelTable tbody').on('click', 'td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+            var data = table.row(this).data();
+            if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            }
+            else {
+                // Open this row
+                $.ajax({
+                    url: "../MasterData/DetailApprovalLevel",
+                    method: "POST",
+                    dataType: "JSON",
+                    data: {
+                        VisitorType: data.VisitorType,
+                        Plant: data.Plant,
+                        Department: data.Department,
+                    },
+                    success: function (j) {
+                        console.log(j.xdatatable);
+                        var value = '<table class="table table-bordered" style="margin-top: 13px !important">'
+                        value += '<thead>'
+                        value += '<tr style="color:black;background-color:white;border-color:Transparent;font-weight:bold;">'
+                        value += '<th>Approval Level</th>'
+                        value += '<th>Windows ID</th>'
+                        value += '<th>Approval</th>'
+                        value += '<th>Category</th>'
+                        value += '<th>Remark</th>'
+                        value += '<th>Action</th>'
+                        value += '</tr>'
+                        value += '</thead>'
+                        value += '<tbody>'
+                        for (var x = 0; x < j.xdataTable.length; x++) {
+                            value += '<tr>'
+                            value += '<td>' + j.xdataTable[x].ApprovalLevel + '</td>'
+                            value += '<td>' + j.xdataTable[x].WindowsID + '</td>'
+                            value += '<td>' + j.xdataTable[x].Approval + '</td>'
+                            value += '<td>' + j.xdataTable[x].Category + '</td>'
+                            value += '<td>' + j.xdataTable[x].Remarks + '</td>'
+                            value += '<td>'
+                            value += '<div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">'
+                            value += '<div class="btn-group mr-2" role="group" aria-label="First group">'
+                            value += '<button class="btn btn-info"  onclick="AddEditVisitorType(\'' + j.xdataTable[x].ID + '\', \'' + j.xdataTable[x].Plant + '\',\'' + j.xdataTable[x].VisitorType + '\',\'' + j.xdataTable[x].Department + '\',\'' + j.xdataTable[x].ApprovalLevel + '\',\'' + j.xdataTable[x].WindowsID + '\',\'' + j.xdataTable[x].Category + '\',\'' + j.xdataTable[x].Remarks + '\')"><i class="fa fa-1x fa-edit"></i> Edit</button>'
+                            value += '<button class="btn btn-danger"  onclick="funcDelete(\'' + j.xdataTable[x].ID + '\')"><i class="la la-trash">Delete</i></button>'
+                            value += '</div>'
+                            value += '</div>'
+                            value += '</td>'
+                            value += '</tr>'
+                        }
+                        value += '</tbody>'
+                        value += '</table>'
+                        row.child(value).show();
+                        tr.addClass('shown');
+                    },
+                    error: function (xhr, error, text) {
+                        toastr.error("Failed get child process, Please contact IT")
+                    }
+                })
+            }
+
+        });
+        //END
+
+    }
+    //end generate datatable
+    function getData()
+    {
+        var VisitorType= $('#VisitorType').val();
+        var Plant= $('#Plant').val();
+        var Department = $('#Department').val();
+        console.log(VisitorType, Plant, Department)
+        $.ajax({
+            url: "../MasterData/GetmmApprovalLevel",
+            method: "POST",
+            dataType: "JSON",
+            data: {
+                VisitorType: VisitorType,
+                Plant: Plant,
+                Department: Department,
+            },
+            success: function (j) {
+                console.log(j.xdataTable);
+                mmApprovalLevelTable.mDataTable.clear();
+                $.each(j.xdataTable, function (i, st) {
+                    mmApprovalLevelTable.mDataTable.row.add(st);
+                })
+                mmApprovalLevelTable.mDataTable.draw();
+            },
+            error: function (xhr, error, text) {
+                toastr.error("Failed Query Get View Table, Please contact IT")
+            }
+        });
+    }
+    //function delte
+    function funcDelete(id, Plant, VisitorType, Department)
+    {
+        Swal.fire({
+            title: 'Are you sure!',
+            text: "Do you want to detele this item?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.value == true) {
+                if (value != null && value != '') {
+                    if (id > 0)
+                    {
+                        $.ajax({
+                            url: "../MasterData/DeleteApprovalLevelByID",
+                            method: "POST",
+                            dataType: "JSON",
+                            data: {
+                                GroupID: value,
+                            },
+                            success: function (j) {
+                                if (j.Result == true) {
+                                    toastr.success(j.Data[0][0].Message)
+                                    getData();
+                                }
+                                else {
+                                    toastr.error("Delete Fail, Please contact IT")
+                                }
+                            },
+                            error: function (xhr, error, text) {
+                                toastr.error("Failed Query Delete, Please contact IT")
+                            }
+                        });
+                    }
+                    else
+                    {
+                        $.ajax({
+                            url: "../MasterData/DeleteApprovalLevelByPlant",
+                            method: "POST",
+                            dataType: "JSON",
+                            data: {
+                                Plant: Plant,
+                                VisitorType : VisitorType,
+                                Department: Department,
+                            },
+                            success: function (j) {
+                                if (j.Result == true) {
+                                    toastr.success(j.Data[0][0].Message)
+                                    getData();
+                                }
+                                else {
+                                    toastr.error("Delete Fail, Please contact IT")
+                                }
+                            },
+                            error: function (xhr, error, text) {
+                                toastr.error("Failed Query Delete, Please contact IT")
+                            }
+                        });
+                    }
+                } else {
+                    toastr.error("ID Not Found, Please reload this page or contact IT")
+                }
+            }
+        })
+    }
+    function funcSave() {
+        var xPlant = $('#PlantModal').val();
+        var xVisitorTypeModal = $('#VisitorTypeModal').val();
+        var xDepartmentModal = $('#DepartmentModal').val();
+        var xApprovalLevelModal = $('#ApprovalLevelModal').val();
+        var xWindowsIDModal = $('#WindowsIDModal').val();
+        var xCategoryModal = $('#CategoryModal').val();
+        var xRemarksModal = $('#RemarksModal').val();
+        //console.log(xPlant + ', ' + xVisitorTypeModal + ', ' + xDepartmentModal + ', ' + xApprovalLevelModal + ', ' + xWindowsIDModal + ', ' + xCategoryModal + ', ' + xRemarksModal);
+        return false;
+        //if (xCategory == "") {
+        //    toastr.error("Please enter Category")
+        //} else {
+        //    $("#btnLabel").attr("disabled", true);
+        //    $.ajax({
+        //        url: "../MasterData/MasterData_InsertCategory",
+        //        method: "POST",
+        //        dataType: "JSON",
+        //        data: {
+        //            Plant: xPlant,
+        //            Category: xCategory,
+        //            CategoryName: xCategoryName,
+        //            Status: xStatus,
+        //        },
+        //        success: function (j) {
+        //            if (j.Result == true) {
+        //                toastr[j.Data[0][0].Status](j.Data[0][0].Message)
+        //                if (j.Data[0][0].Status == "success") {
+        //                    $('#modaladdupdatedata').modal('hide')
+        //                    funcGetCategory()
+        //                }
+        //            }
+        //            else {
+        //                toastr.error("Failed execution, Please contact IT")
+        //            }
+        //            $("#btnLabel").attr("disabled", false);
+        //        },
+        //        error: function (xhr, error, text) {
+        //            toastr.error("Failed Query Add/Update, Please contact IT")
+        //            $("#btnLabel").attr("disabled", false);
+        //        }
+        //    });
+
+        //}
+    }
+</script>
+<script>
+    function AddEditVisitorType(Id, plant, visitortype, department, applvl, winID, category, remark, btnName) {
+        $("#contact").modal("show");
+        if (Id > 0) {
+            if (btnName == "Add")
+            {
+                $("#title").html("Add Visitor Type");
+                $("#btnLabel").html("Save");
+            }
+            else
+            {
+                $("#title").html("Edit Visitor Type");
+                $("#btnLabel").html("Update");
+            }
+            
+            //console.log(Id + plant + visitortype + department + applvl + winID + category);
+            $("#CategoryModal").select2({ width: '100%' }).val("" + category + "").trigger('change.select2');
+            $("#DepartmentModal").select2({ width: '100%'}).val("" + department + "").trigger('change.select2');
+            $("#PlantModal").select2({ width: '100%'}).val("" + plant + "").trigger('change.select2');
+            $("#VisitorTypeModal").select2({ width: '100%'}).val("" + visitortype + "").trigger('change.select2');
+            $("#WindowsIDModal").select2({ width: '100%' }).val("" + winID + "").trigger('change.select2');
+            $("#ApprovalLevelModal").val("" + applvl + "");
+            
+            $("#RemarksModal").val(""+ remark +"");
+            $("#PlantModal").attr("disabled", true);
+            $("#VisitorTypeModal").attr("disabled", true);
+            $("#DepartmentModal").attr("disabled", true);
+            @*$.ajax({
+                type: "POST",
+                url: '@Url.Action("GetVisitorTypeDetail", "MasterData")',
+                data: { Id: Id },
+                success: function (data) {
+                    var isApprove = data.NeedApprove.toUpperCase() === "TRUE" ? "1" : "0";
+                    var isMailAlert = data.NeedMailAlert.toUpperCase() === "TRUE" ? "1" : "0";
+                    var isAllowUnknown = data.AllowUnknown.toUpperCase() === "TRUE" ? "1" : "0";
+                    $("#@Html.IdFor(model => model.Id)").val(data.Id);
+                    $("#@Html.IdFor(model => model.VisitorType)").val(data.VisitorType);
+                    $("#@Html.IdFor(model => model.NeedApprove)").data("kendoComboBox").value(isApprove);
+                    $("#@Html.IdFor(model => model.NeedMailAlert)").data("kendoComboBox").value(isMailAlert);
+                    $("#@Html.IdFor(model => model.AllowUnknown)").data("kendoComboBox").value(isAllowUnknown)
+                }
+            });*@
+        }
+        else {
+            $("#title").html("Add Approval Level");
+            $("#btnLabel").html("Save");
+            $("#ApprovalLevelModal").val("1");
+            $("#CategoryModal").select2({ width: '100%' }).val('').trigger('change.select2');
+            $("#DepartmentModal").select2({ width: '100%' }).val('').trigger('change.select2');
+            $("#PlantModal").select2({ width: '100%' }).val('').trigger('change.select2');
+            $("#VisitorTypeModal").select2({ width: '100%' }).val('').trigger('change.select2');
+            $("#WindowsIDModal").select2({ width: '100%' }).val('').trigger('change.select2');
+            $("#RemarksModal").val('');
+            $("#PlantModal").attr("disabled", false);
+            $("#VisitorTypeModal").attr("disabled", false);
+            $("#DepartmentModal").attr("disabled", false);
+            @*$("#@Html.IdFor(model => model.Id)").val(0);
+            $("#@Html.IdFor(model => model.VisitorType)").val("".VisitorType);
+            $("#@Html.IdFor(model => model.NeedApprove)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.NeedMailAlert)").data("kendoComboBox").select(-1);
+            $("#@Html.IdFor(model => model.AllowUnknown)").data("kendoComboBox").select(-1)*@
+        }
+    }
+</script>
+<script>
+    function dllCategoryModal() {
+        var DDLPlant = $('#CategoryModal');
+        DDLPlant.empty();
+        $.ajax({
+            url: '@Url.Action("GetApprovalCategoryDDList", "MasterData")',
+            data: {
+                //Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                console.log(data);
+                //datas = data;
+                div = "<option selected value=''>Select Category</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                }
+                DDLPlant.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function dllVisitorTypeModal() {
+        var DDLVisitorType = $('#VisitorTypeModal');
+        DDLVisitorType.empty();
+        $.ajax({
+            url: '@Url.Action("getVisitTypeList", "MasterData")',
+            data: {
+                //Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //console.log(data);
+                //datas = data;
+                div = "<option selected value=''>Select Visitor Type</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].VisitorType + "'>" + data[i].VisitorType + "</option>"
+                }
+                DDLVisitorType.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function dllPlantModal() {
+        var DDLPlant = $('#PlantModal');
+        DDLPlant.empty();
+        $.ajax({
+            url: '@Url.Action("getPlantList", "MasterData")',
+            data: {
+                //Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                console.log(data);
+                //datas = data;
+                div = "<option selected value=''>Select Plant</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                }
+                DDLPlant.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function dllDepartmentModal(Plant) {
+        var DDLDepartment = $('#DepartmentModal');
+        DDLDepartment.empty();
+        $.ajax({
+            url: '@Url.Action("GetDepartmentApprovalLevelDDList", "MasterData")',
+            data: {
+                Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //console.log(data);
+                //datas = data;
+                div = "<option selected value=''>Select Department</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                }
+                DDLDepartment.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+
+    function dllWindowsIDModal(Plant) {
+        var DDLDepartment = $('#WindowsIDModal');
+        DDLDepartment.empty();
+        $.ajax({
+            url: '@Url.Action("GetWindowsIDDDList", "MasterData")',
+            data: {
+                Plant: Plant,
+            },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                //console.log(data);
+                //datas = data;
+                div = "<option selected value=''>Select Windows ID</option>"
+                for (i = 0 ; i < data.length; i++) {
+                    ////console.log(data[i].Dept);
+                    //if (data[i].plantId === plantId)
+                    //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                    //else
+                    div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                }
+                DDLDepartment.append(div);
+            },
+            error: function (reponse) {
+                toastr.error("Please contact IT administrator", "ERROR!");
+            }
+        });
+    }
+    function GetApprovalLevel() {
+        var ApprovalLevel = $('#ApprovalLevelModal');
+        ApprovalLevel.empty();
+        var Plant = $('#PlantModal').val();
+        var VisitorType = $('#VisitorTypeModal').val();
+        var Department = $('#DepartmentModal').val();
+        var WindowsID = $('#WindowsIDModal').val();
+        var Category = $('#CategoryModal').val();
+        var btn = $('#btnLabel').text();
+        //if (btn === 'Save')
+        //{
+        ApprovalLevel.empty();
+            $.ajax({
+                url: '@Url.Action("GetApprovalLevel", "MasterData")',
+                data: {
+                    Plant: Plant,
+                    VisitorType: VisitorType,
+                    Department: Department,
+                    Category: Category,
+                    WindowsID: WindowsID
+                },
+                cache: false,
+                type: "POST",
+                success: function (data) {
+                    console.log(data);
+                    //datas = data;
+                    var div;
+                    for (i = 0 ; i < data.length; i++) {
+                        ////console.log(data[i].Dept);
+                        //if (data[i].plantId === plantId)
+                        //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                        //else
+                        //div = data[i].Dept
+                        div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                    }
+                    ApprovalLevel.append(div);
+                },
+                error: function (reponse) {
+                    toastr.error("Please contact IT administrator", "ERROR!");
+                }
+            });
+        @*}
+        else
+        {
+            ApprovalLevel.empty();
+            $.ajax({
+                url: '@Url.Action("GetApprovalLevel", "MasterData")',
+                data: {
+                    Plant: Plant,
+                    VisitorType: VisitorType,
+                    Department: Department,
+                    Category: Category,
+                    WindowsID: WindowsID
+                },
+                cache: false,
+                type: "POST",
+                success: function (data) {
+                    console.log(data);
+                    //datas = data;
+                    var div;
+                    for (i = 0 ; i < data.length; i++) {
+                        ////console.log(data[i].Dept);
+                        //if (data[i].plantId === plantId)
+                        //    div += "<option selected value='" + data[i].plantId + "'>" + data[i].plantName + "</option>"
+                        //else
+                        //div = data[i].Dept
+                        div += "<option value='" + data[i].Dept + "'>" + data[i].DeptName + "</option>"
+                    }
+                    ApprovalLevel.append(div);
+                },
+                error: function (reponse) {
+                    toastr.error("Please contact IT administrator", "ERROR!");
+                }
+            });
+        }*@
+    }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript">
+        $(function () {
+            $("#VisitorType").select2();
+            $("#Department").select2();
+            $("#Plant").select2();
+            $("#CategoryModal").select2({ width: '100%' });
+            $("#DepartmentModal").select2({ width: '100%' });
+            $("#WindowsIDModal").select2({ width: '100%' });
+            $("#VisitorTypeModal").select2({ width: '100%' });
+            $("#PlantModal").select2({ width: '100%' });
+            $("#ApprovalLevelModal").select2({ width: '100%' });
+        });
+</script>
+
+
+@*@{
+    Html.RenderPartial("_MDLoader");
+}*@

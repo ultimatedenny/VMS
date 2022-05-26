@@ -1,0 +1,155 @@
+﻿@model VMS.Web.Models.LoginViewModel
+@{
+    ViewBag.Title = "Index";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Visitor Management System | Login</title>
+    <link rel="shortcut icon" href="~/Content/new-login-assets/Images/favicon.ico" />
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="~/Content/new-login-assets/bower_components/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/Content/new-login-assets/bower_components/font-awesome/css/font-awesome.min.css" />
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="~/Content/new-login-assets/bower_components/Ionicons/css/ionicons.min.css" />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/Content/new-login-assets/dist/css/AdminLTE.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/Content/new-login-assets/dist/css/additional.css" />
+    <link rel="stylesheet" href="~/Content/new-login-assets/dist/css/new_login_style.css" />
+
+    <link href="~/Content/new-login-assets/toastr/toastr.min.css" rel="stylesheet" />
+    <script src="~/Content/new-login-assets/toastr/jquery.min.js"></script>
+    <script src="~/Content/new-login-assets/toastr/toastr.min.js"></script>
+
+</head>
+<body>
+    <div class="container-fluid full-height">
+        <div class="row full-height">
+            <div class="col-md-12 full-height">
+                <div class="row full-height">
+                    <div class="col-md-6 custom-side-page">
+                        <div class="row full-height">
+                            <div class="col-md-12">
+                                <div class="text-center custom-img-container desktopcontent">
+                                    <img src="~/Content/new-login-assets/Images/desktop-logo.png" alt="" class="img-fluid img-logo-web">
+                                </div>
+                                <div class="text-center custom-img-container desktopcontent">
+                                    <img src="~/Content/new-login-assets/Images/desktop-img.png" alt="" class="img-fluid img-login-web">
+                                </div>
+                                <div class="mobilecontent custom-mobile-header" style="display: none;">
+                                    <div style="height: 360px;">
+                                        <div class="text-center custom-mobile-img-container">
+                                            <img src="~/Content/new-login-assets/Images/mobile-logo.png" alt="" class="img-fluid img-logo-mobile">
+                                            <div class="custom-mobile-title">
+                                                <h1><b>VMS</b></h1>
+                                                <div>
+                                                    Visitor Management System
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-md-6 custom-login-page">
+                        <div class="row full-height">
+                            <div class="col-md-12 desktopcontent">
+                                <div class="custom-pullover">Welcome back</div>
+                            </div>
+                            <div class="col-lg-8 col-lg-offset-2 col-md-8 col-md-offset-2 col-sm-12">
+                                <div class="desktopcontent">
+                                    <h5 class="custom-app-title"><b>Visitor Management System</b></h5>
+                                    <b>Log in to access your account</b>
+                                </div>
+                                <div class="login-form">
+                                    @using (Html.BeginForm("Index", "Home", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @autocomplete = "off", role = "form" }))
+                                    {
+                                        @Html.HiddenFor(m => m.isWinAuth)
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group has-feedback">
+                                            <div class="input-group">
+                                                @(Html.Kendo().TextBoxFor(m => m.UseID).HtmlAttributes(new { @placeholder = "User ID or Wind AUTH", @class = "form-control custom-input" }))
+                                                @*<input type="text" class="form-control custom-input" placeholder="User ID or Wind AUTH" autocomplete="off" />*@
+
+                                                <div class="input-group-addon icon-group">
+                                                    <span class="glyphicon glyphicon-user icon-login"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <span class="glyphicon glyphicon-user"></span> -->
+                                        <div class="form-group has-feedback">
+                                            <div class="input-group">
+                                                @(Html.Kendo().TextBoxFor(m => m.UsePass).HtmlAttributes(new { @placeholder = "Password", @class = "form-control custom-input", type="password" }))
+                                                @*<input type="password" class="form-control custom-input" placeholder="Password" autocomplete="off" />*@
+
+                                                <div class="input-group-addon icon-group">
+                                                    <span class="fa fa-lock icon-login"></span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- 2 column grid layout for inline styling -->
+                                        <!-- <div class="row mb-4">
+                                            <div class="col d-flex">
+                                            <div class="form-check">
+                                                <input class="form-check-input custom-checkbox" type="checkbox" value="" id="form2Example31" checked />
+                                                <label class="form-check-label" for="form2Example31"> Remember me </label>
+                                            </div>
+                                            </div>
+                                        </div> -->
+                                        <!-- Submit button -->
+                                        @*<button type="button" class="btn btn-primary custom-btn-rounded form-control btn-block mb-4" onclick="showError()">Login</button>*@
+                                        <input type="submit" value="Log in" class="btn btn-primary custom-btn-rounded form-control btn-block mb-4" />
+                                        <!-- <asp:Button ID="BtnLogin" runat="server" Text="Login" class="btn btn-primary btn-block enter-btn custom-btn-rounded" OnClick="Login_Click" /> -->
+                                        <!-- Register buttons -->
+                                        <div class="text-center custom-bottom-text">
+                                            <p>
+                                                <label for="ErrMsg"></label>
+                                            </p>
+                                            <!-- <p><a href="#!">Forgot Password?</a></p> -->
+                                            <p>
+                                                <strong><label>System : </label> <label>@System.Configuration.ConfigurationManager.AppSettings["ApplicationSystem"]</label>.</strong>
+                                                <strong><label>Version : </label> <label>@ViewBag.ApplicationVersion</label></strong>
+                                            </p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @{
+        if (TempData["ERROR"] != null)
+        {
+            <script type="text/javascript">
+                toastr.error('@TempData["ERROR"]', "ERROR");
+            </script>
+        }
+        if (TempData["SUCCESS"] != null)
+        {
+            <script type="text/javascript">
+                toastr.error('@TempData["SUCCESS"]',"SUCCESS");
+            </script>
+        }
+
+
+    }
+</body>
+</html>
+

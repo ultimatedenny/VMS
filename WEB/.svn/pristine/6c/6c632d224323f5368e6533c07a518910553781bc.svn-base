@@ -1,0 +1,156 @@
+﻿<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+<style>
+    .bs-example {
+        margin: 20px;
+    }
+    td.details-control {
+        background: url('https://cdn.rawgit.com/DataTables/DataTables/6c7ada53ebc228ea9bc28b1b216e793b1825d188/examples/resources/details_open.png') no-repeat center center;
+        cursor: pointer;
+    }
+    tr.shown td.details-control {
+        background: url('https://cdn.rawgit.com/DataTables/DataTables/6c7ada53ebc228ea9bc28b1b216e793b1825d188/examples/resources/details_close.png') no-repeat center center;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        ShowExitPermit();
+    })
+</script>
+<script>
+    function ShowExitPermit() {
+        var table = $("#example").DataTable({
+            destroy: true,
+            "order": [[1, "id"]],
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+            "ajax": {
+                    "url": "@Url.Action("GetExitPermitDatatables", "History")",
+                    "type": "POST",
+                    "datatype": "json",
+                    "data": function (d) {
+                        return $.extend({}, d, {
+                            "ExitPermitNo": "EP",
+                            "DateFrom": "2020-09-01",
+                            "DateTo": "2020-09-09"
+                        });
+                    }
+                 },
+            "columns": [
+                {
+                    "className": "details-control",
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": ''
+                },
+                { "data": "EPNo", "name": "EPNo", "title": "EP No", "autoWidth": true },
+                { "data": "Date", "name": "Date", "title": "Date", "autoWidth": true },
+                { "data": "Destination", "name": "Destination", "title": "Destination", "autoWidth": true },
+                { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+            ]
+        });
+        $('#example tbody').on('click', 'td.details-control', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
+
+            if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+            } else {
+                // Open this row
+                row.child(format(row.data())).show();
+                tr.addClass('shown');
+            }
+        });
+        $('#btn-show-all-children').on('click', function () {
+            // Enumerate all rows
+            table.rows().every(function () {
+                // If row has details collapsed
+                if (!this.child.isShown()) {
+                    // Open this row
+                    this.child(format(this.data())).show();
+                    $(this.node()).addClass('shown');
+                }
+            });
+        });
+        $('#btn-hide-all-children').on('click', function () {
+            // Enumerate all rows
+            table.rows().every(function () {
+                // If row has details expanded
+                if (this.child.isShown()) {
+                    // Collapse row details
+                    this.child.hide();
+                    $(this.node()).removeClass('shown');
+                }
+            });
+        });
+    }
+    function format(c)
+    {
+        return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+            '<tr>'+
+                '<td>EP Number:</td>'+
+            '<td>' + c.EPNo+'</td>'+
+            '</tr>' +
+
+            '<tr>'+
+                '<td>Apply Date:</td>'+
+            '<td>' + c.Date+'</td>'+
+            '</tr>' +
+
+            '<tr>' +
+                '<td>Request By:</td>' +
+            '<td>' + c.CreatedBy + '</td>' +
+            '</tr>' +
+
+            '<tr>' +
+            '<td>Destination:</td>' +
+            '<td>' + c.Destination + '</td>' +
+            '</tr>' +
+
+            '<tr>' +
+                '<td>Time Out:</td>' +
+            '<td>' + c.Out + '</td>' +
+            '</tr>' +
+
+            '<tr>' +
+                '<td>Time In:</td>' +
+            '<td>' + c.In + '</td>' +
+            '</tr>' +
+
+            '<tr>'+
+                '<td>Status:</td>'+
+            '<td>' + c.Status + '</td>' +
+            '</tr>'+
+        '</table>';
+    }
+</script>
+
+<table id="example" class="display" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+</table>

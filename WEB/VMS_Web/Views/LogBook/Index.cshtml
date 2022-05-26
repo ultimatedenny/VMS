@@ -1,0 +1,1019 @@
+﻿@model VMS.Web.Models.LogBook
+@{
+    ViewBag.Title = "LogBook";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Scripts.Render("~/Webcam")
+@Styles.Render("~/DataTablesCS")
+@Scripts.Render("~/DataTablesJS")
+<script type="text/javascript" src=@Url.Content("~/Scripts/webcam.min.js")></script>
+
+<script>
+    $(document).ready(function () {
+        GenerateLIGrid();
+        GenerateRPGrid();
+        GenerateReportGrid();
+    })
+    function GenerateRPGrid() {
+        var dateFrom = $('#DateFromRP').val();
+        var dateTo = $('#DateToRP').val();
+        var Keyword = $('#KeyWordRP').val();
+        var ReceivePackageGrid = $("#ReceivePackageGrid").DataTable({
+            destroy: true,
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "pageLength": 2,
+            "bLengthChange": false,
+            "ajax": {
+                "url": "@Url.Action("ShowReceivePackage", "LogBook")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                        "dateFrom": dateFrom,
+                        "dateTo": dateTo,
+                        "KeyWord": Keyword
+                    });
+                }
+            },
+
+            "columnDefs":
+                    [{
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    },
+    {
+        "targets": [5],
+        "searchable": false,
+        "orderable": false
+    },{
+                        "targets": [6],
+            "searchable": false,
+            "orderable": false
+        }],
+
+            "columns": [
+                { "data": "LogId", "name": "LogId", "title": "LogId", "autoWidth": true },
+            {
+                "data": "No",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+
+            {
+                "render": function (data, type, full, meta) {
+                    return '<button class="btn btn-success"  onclick="ReceivePackage(' + full.LogId + ')"><i class="fa fa-1x fa-external-link-square"></i> Receive</button> - <button class="btn btn-info"  onclick="SeePhotoes(' + full.LogId + ')"><i class="fa fa-1x fa-camera"></i> See Photoes</button>';
+                }
+            },
+            { "data": "InfoGrant", "name": "InfoGrant", "title": "Courier Name", "autoWidth": true },
+            { "data": "NameGrant", "name": "NameGrant", "title": "Name", "autoWidth": true },
+            { "data": "DateGrant", "name": "DateGrant", "title": "Date", "autoWidth": true },
+            { "data": "TimeGrant", "name": "TimeGrant", "title": "Time", "autoWidth": true },
+            { "data": "Remark", "name": "Remark", "title": "Remark", "autoWidth": true },
+            { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+
+            ]
+        }
+                    );
+
+    }
+    function GenerateLIGrid() {
+        var dateFrom = $('#DateFromLI').val();
+        var dateTo = $('#DateToLI').val();
+        var Keyword = $('#KeyWordLI').val();
+        var LostItemGrid = $("#LostItemGrid").DataTable({
+            destroy: true,
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "bLengthChange": false,
+            "pageLength": 2,
+            "ajax": {
+                "url": "@Url.Action("ShowLostItem", "LogBook")",
+            "type": "POST",
+            "datatype": "json",
+            "data": function (d) {
+                return $.extend({}, d, {
+                    "dateFrom": dateFrom,
+                    "dateTo": dateTo,
+                    "KeyWord" : Keyword
+                });
+            }
+        },
+
+            "columnDefs":
+                [{
+                "targets": [0],
+        "visible": false,
+        "searchable": false
+    },
+    {
+                "targets": [5],
+                "searchable": false,
+                "orderable": false
+    },
+    {
+        "targets": [6],
+        "searchable": false,
+        "orderable": false
+    }],
+
+
+            "columns": [
+                { "data": "LogId", "name": "LogId", "title": "LogId", "autoWidth": true },
+            {
+                "data": "No",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+
+
+            {
+                "render": function (data, type, full, meta) {
+                    return '<button class="btn btn-success"  onclick="ReceivePackage(' + full.LogId + ')"><i class="fa fa-1x fa-external-link-square"></i> Receive</button> - <button class="btn btn-info"  onclick="SeePhotoes(' + full.LogId + ')"><i class="fa fa-1x fa-camera"></i> See Photoes</button>';
+                }
+            },
+            { "data": "InfoGrant", "name": "InfoGrant", "title": "Item's Name", "autoWidth": true },
+            { "data": "NameGrant", "name": "NameGrant", "title": "Founder Name", "autoWidth": true },
+            { "data": "DateGrant", "name": "DateGrant", "title": "Date", "autoWidth": true },
+            { "data": "TimeGrant", "name": "TimeGrant", "title": "Time", "autoWidth": true },
+            { "data": "Remark", "name": "Remark", "title": "Remark", "autoWidth": true },
+            { "data": "Status", "name": "Status", "title": "Status", "autoWidth": true },
+
+            ]
+    }
+        );
+    }
+    function GenerateReportGrid() {
+        var dateFrom = $('#DateFromReport').val();
+        var dateTo = $('#DateToReport').val();
+        var Keyword = $('#KeyWordReport').val();
+        var ReportGrid = $("#ReportGrid").DataTable({
+            destroy: true,
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": false, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "scrollX": true,
+            "bLengthChange": false,
+            "pageLength": 10,
+            "ajax": {
+                "url": "@Url.Action("ShowAllReport", "LogBook")",
+                "type": "POST",
+                "datatype": "json",
+                "data": function (d) {
+                    return $.extend({}, d, {
+                    "dateFrom": dateFrom,
+                    "dateTo": dateTo,
+                    "KeyWord" : Keyword
+                });
+            }
+        },
+
+            "columnDefs":
+                    [{
+                        "targets": [0],
+                "visible": false,
+                "searchable": false
+            },
+            {
+                        "targets": [5],
+                        "searchable": false,
+                        "orderable": false
+            },
+                    {
+                        "targets": [6],
+                        "searchable": false,
+                        "orderable": false
+                    }],
+
+
+            "columns": [
+                { "data": "LogId", "name": "LogId", "title": "LogId", "autoWidth": true },
+            {
+                "data": "No",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                }
+            },
+
+
+            {
+                "render": function (data, type, full, meta) {
+                    return '<button class="btn btn-info"  onclick="SeePhotoes(' + full.LogId + ')"><i class="fa fa-1x fa-camera"></i> See Photoes</button>';
+                }
+            },
+            { "data": "TypeName", "name": "TypeName", "title": "Type", "autoWidth": true },
+            { "data": "NameGrant", "name": "NameGrant", "title": "Name", "autoWidth": true },
+            { "data": "InfoGrant", "name": "InfoGrant", "title": "Info", "autoWidth": true },
+            { "data": "DateGrant", "name": "DateGrant", "title": "Date Grant", "autoWidth": true },
+            { "data": "TimeGrant", "name": "TimeGrant", "title": "Time Grant", "autoWidth": true },
+            { "data": "NameReceive", "name": "NameGrant", "title": "Name Receive", "autoWidth": true },
+            { "data": "DateReceive", "name": "DateReceive", "title": "Date Receive", "autoWidth": true },
+            { "data": "TimeReceive", "name": "TimeReceive", "title": "Time Receive", "autoWidth": true },
+            { "data": "Remark", "name": "Remark", "title": "Remark", "autoWidth": true },
+
+    ]
+    }
+        );
+
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-lg btn-info btn-block" onclick="ReceiveItemBySecurity('1')">
+                        Receive Packages
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateFromRP", "Date Start")
+                            @(Html.Kendo().DatePicker().Name("DateFromRP")
+                              .Start(CalendarView.Month)
+                              .Depth(CalendarView.Month)
+                              .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeRP"))
+                              .Format("yyyy-MM-dd")
+                              .Value(DateTime.Today.AddMonths(-1))
+                              .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateToRP", "Date To")
+                            @(Html.Kendo().DatePicker().Name("DateToRP")
+                                .Start(CalendarView.Month)
+                                .Depth(CalendarView.Month)
+                                .Min(DateTime.Today)
+                                .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateRPGrid"))
+                                .Format("yyyy-MM-dd")
+                                .Value(DateTime.Today)
+                                .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("Vessel", "Vessel : ")<br />
+                        <div class="k-content">
+                            @(Html.Kendo()
+        .TextBox().Name("Vessel")
+        .HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%"}))
+                        </div>
+                    </div>
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="ReceivePackageGrid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>LogId</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th>NameGrant</th>
+                                        <th>InfoGrant</th>
+                                        <th>DateGrant</th>
+                                        <th>TimeGrant</th>
+                                        <th>Remark</th>
+                                        <th>Status</th>
+
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="col-md-12">
+                    <button type="button" onclick="ReceiveItemBySecurity('2')" class="btn btn-lg btn-danger btn-block">
+                        Receive Lost Item
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateFromLI", "Date Start")
+                            @(Html.Kendo().DatePicker().Name("DateFromLI")
+                              .Start(CalendarView.Month)
+                              .Depth(CalendarView.Month)
+                              .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeLI"))
+                              .Format("yyyy-MM-dd")
+                              .Value(DateTime.Today.AddMonths(-1))
+                              .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="k-content">
+                            @Html.Label("DateToLI", "Date To")
+                            @(Html.Kendo().DatePicker().Name("DateToLI")
+                                .Start(CalendarView.Month)
+                                .Depth(CalendarView.Month)
+                                .Min(DateTime.Today)
+                                .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateLIGrid"))
+                                .Format("yyyy-MM-dd")
+                                .Value(DateTime.Today)
+                                .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label("KeyWordLI", "Keyword : ")<br />
+                        <div class="k-content">
+                            @(Html.Kendo()
+        .TextBox().Name("KeyWordLI")
+        .HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateLIGrid()" }))
+                        </div>
+                    </div>
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="LostItemGrid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>LogId</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th>NameGrant</th>
+                                        <th>InfoGrant</th>
+                                        <th>DateGrant</th>
+                                        <th>TimeGrant</th>
+                                        <th>Remark</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="box ShimanoBox">
+            <div class="box-body">
+                <div class="row">
+                    @using (Html.BeginForm("ExportLogtoExcel", "LogBook", FormMethod.Post))
+                    {
+                        <div class="col-md-3">
+                            <div class="k-content">
+                                @Html.Label("DateFromReport", "Date Start")
+                                @(Html.Kendo().DatePicker().Name("DateFromReport")
+          .Start(CalendarView.Month)
+          .Depth(CalendarView.Month)
+          .Max(DateTime.Today.AddYears(1)).Events(e => e.Change("startChangeReport"))
+          .Format("yyyy-MM-dd")
+          .Value(DateTime.Today.AddMonths(-1))
+          .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="k-content">
+                                @Html.Label("DateToReport", "Date To")
+                                @(Html.Kendo().DatePicker().Name("DateToReport")
+            .Start(CalendarView.Month)
+            .Depth(CalendarView.Month)
+            .Min(DateTime.Today)
+            .Max(DateTime.Today.AddMonths(1)).Events(e => e.Change("GenerateReportGrid"))
+            .Format("yyyy-MM-dd")
+            .Value(DateTime.Today)
+            .HtmlAttributes(new { style = "width: 100%", title = "datepicker", @class = "form-control" })
+                            )
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @Html.Label("KeyWordReport", "Keyword : ")<br />
+                            <div class="k-content">
+                                @(Html.Kendo()
+.TextBox().Name("KeyWordReport")
+.HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GenerateReportGrid()" }))
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Export to Excel</button>
+                        </div>
+                    }
+                </div><br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div style="width:100%; margin:0 auto;">
+                            <table id="ReportGrid" class="table table-striped table-bordered dt-responsive nowrap " width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>LogId</th>
+                                        <th>No</th>
+                                        <th>Action</th>
+                                        <th>Type</th>
+                                        <th>NameGrant</th>
+                                        <th>InfoGrant</th>
+                                        <th>DateGrant</th>
+                                        <th>TimeGrant</th>
+                                        <th>NameReceive</th>
+                                        <th>DateReceive</th>
+                                        <th>TimeReceive</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="modalReceiveItem">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            @using (Ajax.BeginForm("SaveReceivebySecurity", "LogBook", null,
+                                                    new AjaxOptions
+                                                    {
+                                                        OnSuccess = "onSuccess",
+                                                        OnFailure = "onFailure",
+                                                        OnBegin = "return StartValidationScr()"
+                                                    }, new { @id = "formSavePackageReceive" }))
+            {
+                <div class="modal-header">
+                    <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="title">Receive Lost Item</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="row">
+                                @Html.HiddenFor(m => m.TypeId)
+                                <div class="col-md-12">
+                                    <div class="k-content">
+                                        @Html.LabelFor(m => m.NameGrant, "Name: ", new { @id = "lblNameGrant" })<br />
+                                        @(Html.Kendo()
+                                        .TextBoxFor(m => m.NameGrant)
+                                        .HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Name" }))
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="k-content">
+                                        @Html.HiddenFor(m => m.PhotoGrant)
+                                        @Html.LabelFor(m => m.InfoGrant, "Item's Name: ", new { @id = "lblInfoGrant" })<br />
+                                        @(Html.Kendo()
+                                        .TextBoxFor(m => m.InfoGrant)
+                                        .HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Name of Items" }))
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="k-content">
+                                        @Html.LabelFor(m => m.Remark, "Remark : ")<br />
+                                        @Html.TextAreaFor(m => m.Remark, 3, 3, new { @class = "k-textbox", style = "width: 100%; padding:10px" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-12 text-center">
+
+
+                                    
+                                    <div class="col-md-12">
+                                        <div id="myCamera1"></div>
+                                        <input id="webcamData1" type="hidden" name="webcamData1" value="" />
+                                        <input id="txtName1" type="hidden" name="txtName1" value="" />
+                                        <div id="divImage" hidden="hidden">
+                                            <img id="imgToSubmit" class="img-responsive" style="height:360px; width:90%;" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                                        </div>
+                                        <br />
+                                        <button type="button" class="btn btn-block btn-info" id="btnCapture1" onclick="capturePhoto(1)"><i class="fa fa-camera-retro"></i> Capture</button>
+                                        <button type="button" class="btn btn-block btn-warning" id="btnRetake1" onclick="retakePhoto(1)"><i class="fa fa-refresh"></i> Retake</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-center">
+                                    <div class="form-group">
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button class="btn btn-success btn-block" type="submit" id="btnSaveRegister"><i class="fa fa-save"></i> Save</button>
+
+                    </div>
+                    <div class="col-md-6">
+                        <a href="#" class="btn btn-danger btn-block" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalReceiveItemByUser">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            @using (Ajax.BeginForm("SaveReceivebyUser", "LogBook", null,
+                                                    new AjaxOptions
+                                                    {
+                                                        OnSuccess = "onSuccessUser",
+                                                        OnFailure = "onFailure",
+                                                        OnBegin = "return StartValidationUser()"
+                                                    }, new { @id = "formSavePackageReceiveUser" }))
+            {
+                <div class="modal-header">
+                    <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                    <h3 class="modal-title" id="title">Receive By User</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="row">
+                                @Html.HiddenFor(m => m.TypeId)
+                                <div class="col-md-12">
+                                    <div class="k-content">
+                                        @Html.Hidden("LogIds")
+                                        @Html.Hidden("Photoes")
+                                        @Html.Label("NameReceives", "Name: ")<br />
+                                        @(Html.Kendo()
+        .TextBox().Name("NameReceives")
+        .HtmlAttributes(new { @class = "form-control", style = "width:100%", required = "required", data_required_msg = "Please Fill the Name", @id= "NameReceives" }))
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="myCamera2"></div>
+                                    <input id="webcamData2" type="hidden" name="webcamData2" value="" />
+                                    <input id="txtName2" type="hidden" name="txtName2" value="" />
+                                    <div id="divImage" hidden="hidden">
+                                        <img id="imgToSubmit" class="img-responsive" style="height:360px; width:90%;" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                                    </div>
+                                    <br />
+                                    <button type="button" class="btn btn-block btn-info" id="btnCapture2" onclick="capturePhoto(2)"><i class="fa fa-camera-retro"></i> Capture</button>
+                                    <button type="button" class="btn btn-block btn-warning" id="btnRetake2" onclick="retakePhoto(2)"><i class="fa fa-refresh"></i> Retake</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-center">
+                                    <div class="form-group">
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button class="btn btn-success btn-block" type="submit" id="btnSaveReicever"><i class="fa fa-save"></i> Save</button>
+
+                    </div>
+                    <div class="col-md-6">
+                        <a href="#" class="btn btn-danger btn-block" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImage">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" style="color:white" class="close" data-dismiss="modal">&times;</a>
+                <h3 class="modal-title" id="title">Photo</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>Photo of Item</h3>
+                        <img height="200" id="PhotoItem" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Photo of User</h3>
+                        <img height="200" id="PhotoUser" src="@Url.Content("~/Uploads/PhotoVisitor/no_image.png")" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <a href="#" class="btn btn-danger btn-block" data-dismiss="modal"><i class="fa fa-times"></i> Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ReceivePackage(Id) {
+        $('#LogIds').val(Id);
+        $('#modalReceiveItemByUser').modal('show')
+        startCamera(2);
+    }
+    function ReceiveItemBySecurity(Type) {
+        if (Type === "1") {
+            $("#title").html("Receive Package")
+            document.getElementById("lblNameGrant").innerHTML = "Name"
+            document.getElementById("lblInfoGrant").innerHTML = "Courier Info"
+        }
+        else {
+            $("#title").html("Receive Lost Item")
+            document.getElementById("lblNameGrant").innerHTML = "Founder Name"
+            document.getElementById("lblInfoGrant").innerHTML = "Item Info"
+        }
+        $('#TypeId').val(Type);
+        $('#modalReceiveItem').modal('show')
+        startCamera(1);
+    }
+
+    function RetakePic() {
+        $("#divImage").hide();
+        $("#CameraReceived").show();
+        $("#CameraReceived").empty();
+        onOffCamReceived();
+    }
+    function RetakePicUser() {
+        $("#divImageUser").hide();
+        $("#CameraReceivedUser").show();
+        $("#CameraReceivedUser").empty();
+        onOffuser();
+    }
+</script>
+<script id="Time ">
+    function startChangeRP() {
+        var endPicker = $("#DateToRP").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateRPGrid();
+    }
+    function startChangeLI() {
+        var endPicker = $("#DateToLI").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateLIGrid();
+    }
+    function startChangeReport() {
+        var endPicker = $("#DateToReport").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            endPicker.min(startDate);
+        }
+        GenerateLIGrid();
+    }
+    function onSuccess(data) {
+        if (data.Success) {
+            $("#loaderDiv").hide();
+            $("#modalReceiveItem").modal("hide");
+            $('#@Html.IdFor(m=>m.NameGrant)').val("")
+            $('#@Html.IdFor(m=>m.InfoGrant)').val("")
+            $('#@Html.IdFor(m=>m.Remark)').val("")
+            oTable = $('#ReceivePackageGrid').DataTable();
+            oTable.draw();
+            oTable1 = $('#LostItemGrid').DataTable();
+            oTable1.draw();
+            oTable2 = $('#ReportGrid').DataTable();
+            oTable2.draw();
+            toastr.success(data.Message, 'Success!');
+            reloadPage();
+        } else {
+            toastr.warning(data.Message, 'Warning!')
+        }
+    }
+    function onSuccessUser(data) {
+        if (data.Success) {
+            $("#loaderDiv").hide();
+            $("#modalReceiveItemByUser").modal("hide");
+            $("#NameReceives").val("")
+            oTable = $('#ReceivePackageGrid').DataTable();
+            oTable.draw();
+            oTable1 = $('#LostItemGrid').DataTable();
+            oTable1.draw();
+            oTable2 = $('#ReportGrid').DataTable();
+            oTable2.draw();
+            toastr.success(data.Message, 'Success!');
+            reloadPage();
+        } else {
+            toastr.warning(data.Message, 'Warning!')
+        }
+    }
+</script>
+
+<script id="AJAXCamera">
+    //SECURITY
+    function onOffCamReceived() {
+        $('#divImage').hide();
+        $('#CameraReceived').show();
+        document.getElementById('btnRetake').disabled = true;
+        $("#CameraReceived").webcam({
+            width: '100%',
+            height: 360,
+            mode: "save",
+            swffile: "@Url.Content("~/Scripts/jscam.swf")",
+            onTick: function () { },
+            onSave: function () {
+                UploadPic();
+            },
+            onCapture: function () {
+                webcam.save("@Url.Content("~/LogBook/Capture")/" + $("#detailId").val());
+            },
+            debug: function () { },
+            onLoad: function () { }
+        });
+    }
+    function UploadPic() {
+        $.ajax({
+            type: 'POST',
+            url: ("@Url.Content("~/LogBook/Rebind")/"),
+        dataType: 'json',
+        success: function (data) {
+            $("#imgToSubmit").attr("src", '@Url.Content("~/Uploads/LogBook/")' + data);
+            $("#@Html.IdFor(m=> m.PhotoGrant)").val(data);
+            $('#divImage').show();
+            $('#CameraReceived').hide();
+            document.getElementById('btnRetake').disabled = false;
+            toastr.success("Photo Capture successfully!", "Success");
+        }
+    });
+    }
+    //USER
+    function onOffuser() {
+        $('#divImageUser').hide();
+        $('#CameraReceivedUser').show();
+        document.getElementById('btnRetakeUser').disabled = true;
+        $("#CameraReceivedUser").webcam({
+            width: '100%',
+            height: 360,
+            mode: "save",
+            swffile: "@Url.Content("~/Scripts/jscam.swf")",
+            onTick: function () { },
+        onSave: function () {
+            UploadPicUser();
+        },
+        onCapture: function () {
+            webcam.save("@Url.Content("~/LogBook/Capture")/" + $("#detailId").val());
+        },
+        debug: function () { },
+        onLoad: function () { }
+
+    });
+    }
+    function UploadPicUser() {
+        $.ajax({
+            type: 'POST',
+            url: ("@Url.Content("~/LogBook/Rebind")/"),
+        dataType: 'json',
+        success: function (data) {
+            $("#imgToSubmitUser").attr("src", '@Url.Content("~/Uploads/LogBook/")' + data);
+            $("#Photoes").val(data);
+            $('#divImageUser').show();
+            $('#CameraReceivedUser').hide();
+            document.getElementById('btnRetakeUser').disabled = false;
+            toastr.success("Photo Capture successfully!", "Success");
+        }
+    });
+    }
+</script>
+<script>
+    function reloadPage() {
+        location.reload(true);
+    }
+    function SeePhotoes(LogId) {
+        var _logid = LogId;
+        $.ajax({
+            url : "@Url.Action("SeePhotoes", "LogBook")",
+            data: { LogId: LogId },
+            success: function (data) {
+                CheckPhoto('@Url.Content("~/Uploads/LogBook/")' + data.PhotoItem, "PhotoItem")
+                CheckPhoto('@Url.Content("~/Uploads/LogBook/")' + data.PhotoUser, "PhotoUser")
+                @*$('#PhotoItem').prop("src", '@Url.Content("~/Uploads/LogBook/")' + data.PhotoItem)
+                $('#PhotoUser').prop("src", '@Url.Content("~/Uploads/LogBook/")' + data.PhotoUser)*@
+                $("#modalImage").modal("show");
+            },
+            error: function (data) {
+                toastr.warning("Photo Not Found!", "Warning!");
+            }
+
+        })
+    }
+    function CheckPhoto(src, Loc) {
+        var srcDef = '@Url.Content("~/Uploads/PhotoVisitor/no_image_2.jpg")';
+        checkSrcPhoto(src)
+          .on("error", function (e) {
+              $('#' + Loc).attr('src', srcDef)
+          })
+          .on("load", function (e) {
+              $('#' + Loc).attr('src', src)
+          })
+    }
+    function checkSrcPhoto(src) {
+        return $("<img>").attr('src', src);
+    }
+    function StartValidationUser() {
+        if ($("#Photoes").val() == "") {
+            toastr.warning("Please take the photo first")
+            return false
+        }
+        return true
+    }
+    function StartValidationScr() {
+        if ($("#@Html.IdFor(m=>m.PhotoGrant)").val() == "") {
+            toastr.warning("Please take the photo first")
+            return false
+        }
+        return true
+    }
+</script>
+
+<script language="JavaScript">
+    var photoData;
+    Webcam.set({
+        width: 400,
+        height: 300,
+        image_format: 'jpeg',
+        upload_name: 'webcamPhoto',
+        jpeg_quality: 100
+    });
+    function startCamera(Tipe0) {
+        Webcam.reset();
+        if (Tipe0 == 1) {
+            document.getElementById('btnCapture1').disabled = false;
+            document.getElementById('btnRetake1').disabled = true;
+            document.getElementById('btnCapture2').disabled = true;
+            document.getElementById('btnRetake2').disabled = true;
+            document.getElementById('btnSaveRegister').disabled = true;
+            document.getElementById('btnSaveReicever').disabled = true;
+            Webcam.attach('#myCamera1');
+        }
+        else {
+            document.getElementById('btnCapture1').disabled = true;
+            document.getElementById('btnRetake1').disabled = true;
+            document.getElementById('btnCapture2').disabled = false;
+            document.getElementById('btnRetake2').disabled = true;
+            document.getElementById('btnSaveRegister').disabled = true;
+            document.getElementById('btnSaveReicever').disabled = true;
+            Webcam.attach('#myCamera2');
+        }
+    }
+    function capturePhoto(Tipe1) {
+        if (Tipe1 == 1) {
+            Webcam.snap(function (data_uri) {
+                photoData = data_uri;
+                Webcam.freeze();
+                var raw_image_data = data_uri.replace(/^data\:image\/\w+\;base64\,/, '');
+                document.getElementById('webcamData1').value = raw_image_data;
+            });
+            document.getElementById('btnCapture1').disabled = true;
+            document.getElementById('btnRetake1').disabled = false;
+            $("#txtName1").val('');
+            $("#PhotoGrant").val('');
+            $("#txtName2").val('');
+            $("#Photoes").val('');
+            setTimeout(getpreview(1), 1000);
+        }
+        else {
+            Webcam.snap(function (data_uri) {
+                photoData = data_uri;
+                Webcam.freeze();
+                var raw_image_data = data_uri.replace(/^data\:image\/\w+\;base64\,/, '');
+                document.getElementById('webcamData2').value = raw_image_data;
+            });
+            document.getElementById('btnCapture2').disabled = true;
+            document.getElementById('btnRetake2').disabled = false;
+            $("#txtName1").val('');
+            $("#PhotoGrant").val('');
+            $("#txtName2").val('');
+            $("#Photoes").val('');
+            setTimeout(getpreview(2), 1000);
+        }
+    }
+    function getpreview(Tipe2) {
+        if (Tipe2 == 1) {
+            $.ajax({
+                type: 'POST',
+                url: ("@Url.Content("~/LogBook/GetFileName?GetReceive=1")"),
+                dataType: 'json',
+                success: function (fileName) {
+                    if (fileName != "Error") {
+                        $("#txtName1").val(fileName);
+                        $("#PhotoGrant").val(fileName);
+                        var uploadUrl = "@Url.Content("~/LogBook/Capture2?Type=")" + $('#TypeId').val() + "&FileName=" + $("#txtName1").val();
+                        Webcam.upload(photoData, uploadUrl);
+                        document.getElementById('btnSaveRegister').disabled = false;
+                        toastr.success("Photo Capture successfully!", "Success");
+                    }
+                    else {
+                        toastr.error("Something wrong, please call IT", "Oops");
+                    }
+
+                }
+            });
+        }
+        else {
+           $.ajax({
+                type: 'POST',
+                url: ("@Url.Content("~/LogBook/GetFileName?GetReceive=2")"),
+                dataType: 'json',
+               success: function (fileName) {
+                   if (fileName != "Error") {
+                       $("#txtName2").val(fileName);
+                       $("#Photoes").val(fileName);
+                       var uploadUrl = "@Url.Content("~/LogBook/Capture3?Type=")" + $('#LogIds').val() + "&FileName=" + $("#txtName2").val();
+                       Webcam.upload(photoData, uploadUrl);
+                       document.getElementById('btnSaveReicever').disabled = false;
+                       toastr.success("Photo Capture successfully!", "Success");
+                   }
+                   else {
+                       toastr.error("Something wrong, please call IT", "Oops");
+                   }
+
+                }
+            });
+        }
+    }
+    function retakePhoto(Tipe3) {
+        $("#txtName1").val('');
+        $("#PhotoGrant").val('');
+        $("#txtName2").val('');
+        $("#Photoes").val('');
+        if (Tipe3 == 1) {
+            document.getElementById('btnCapture1').disabled = false;
+            document.getElementById('btnRetake1').disabled = true;
+            document.getElementById('btnSaveRegister').disabled = true;
+        }
+        else {
+            document.getElementById('btnCapture2').disabled = false;
+            document.getElementById('btnRetake2').disabled = true;
+            document.getElementById('btnSaveReicever').disabled = true;
+        }
+        Webcam.unfreeze();
+    }
+</script>
+
+

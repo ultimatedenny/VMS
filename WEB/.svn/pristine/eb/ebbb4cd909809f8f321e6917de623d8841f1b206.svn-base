@@ -1,0 +1,489 @@
+﻿@using VMS.Web.Models
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Scripts.Render("~/Highchart")
+<style>
+    .NeedApprove{
+          padding:5px;
+          background-color:#DC3545;
+          color:white
+      }
+    .NoNeedApprove{
+          padding:5px;
+          background-color:#28A745;
+          color:white
+      }
+    .PendingStatus{
+          padding:5px;
+          background-color:#FFC107;
+          color:white
+      }
+    .CheckoutStatus{
+        padding:5px;
+          background-color:#343a40;
+          color:white
+    }
+    .CheckinStatus{
+        padding:5px;
+          background-color:#007bff;
+          color:white
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box ShimanoBox">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="nav-tabs-custom">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#tab_1" data-toggle="tab" aria-expanded="false">Summary of Visitor Status</a></li>
+                            <li class=""><a href="#tab_2" data-toggle="tab" aria-expanded="false">Graph for Visitor History</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab_1">
+                                @RenderTable()
+                            </div>
+                            <!-- /.tab-pane -->
+                            <div class="tab-pane" id="tab_2">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div id="VisitorPerMonth"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <div id="RankDepartment"></div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div id="RankUser"></div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div id="RankCompany"></div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div id="RankVisitor"></div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div id="RankDate"></div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div id="RankVisitorType"></div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <!-- /.tab-pane -->
+                        </div>
+                        <!-- /.tab-content -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@helper RenderTable()
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h4>
+                Visitor By Today
+            </h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="k-content">
+                        @Html.Label("searchPlant", "Plant")
+                        @Html.Kendo().DropDownList().Name("searchPlant").OptionLabel("Select Plant...").HtmlAttributes(new { style = "width: 100%", @class = "", required = "required", data_required_msg = "Please Select the Plant" }).DataTextField("plantName").DataValueField("plantId").DataSource(source => { source.Read(read => { read.Action("getPlantList", "MasterData"); }); }).Value(Session["UsePlant"].ToString()).Events(e => e.Change("GetVisitorTableToday"))
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    @Html.Label("txtSearch", "Search By Visitor Name or Company")
+                    @Html.Kendo().TextBox().Name("txtSearch").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GetVisitorTableToday()" })
+                </div>
+                <div class="col-md-3">
+                    <div class="k-content">
+                        @Html.Label("StatusDashboard", "Status : ")<br />
+                        @(Html.Kendo().ComboBox().Name("StatusDashboard")
+                                          .Filter("contains")
+                                          .Placeholder("Select Status...")
+                                          .DataTextField("Text")
+                                          .DataValueField("Value").Events(e => e.Change("GetVisitorTableToday"))
+                                          .BindTo(new List<SelectListItem>() {
+                                                  new SelectListItem() {
+                                                    Text = "ALL", Value = ""
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "APPROVED", Value = "APPROVED"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "CHECKIN", Value = "CHECKIN"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "BREAK", Value = "BREAK"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "CHECKOUT", Value = "CHECKOUT"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "PENDING", Value = "PENDING"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "REJECTED", Value = "REJECTED"
+                                                  },
+                                                  new SelectListItem() {
+                                                   Text = "CANCELLED", Value = "CANCELLED"
+                                                  }
+
+
+                                          })
+                                          .Value(System.Configuration.ConfigurationManager.AppSettings["FilterType"])
+                                          .Suggest(true)
+                                          .HtmlAttributes(new { style = "width:100%;" })
+                        )
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    @Html.Label("txtByHost", "Search By Hostname")
+                    @Html.Kendo().TextBox().Name("txtByHost").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "GetVisitorTableToday()" })
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-12">
+                    @(Html.Kendo().Grid<LogHistory>().Name("VisitorTodayGrid")
+            .Columns(col =>
+            {
+                col.Bound(p => p.LogId).Title("RefNo").Width(90);
+                col.Bound(p => p.TimeStart).Title("TimeStart");
+                col.Bound(p => p.FullName).Title("Name").ClientTemplate("#= GetNewLineTable(FullName, Company) #");
+                col.Bound(p => p.Phone).Title("Phone");
+                col.Bound(p => p.DateStart).Title("Date Checkin");
+                col.Bound(p => p.Duration).Title("Duration");
+                col.Bound(p => p.VisitorType).Title("Visitor Type").ClientTemplate("#= GetVisitorTypeColor(VisitorType, NeedApprove) #");
+                col.Bound(p => p.HostName).Title("Host Name").ClientTemplate("#= GetNewLineTable(HostName, HostTel) #");
+                col.Bound(p => p.Status).Title("Status").ClientTemplate("#= GetNewLineTable(Status, ApprovedBy) #");
+                col.Bound(p => p.Area).Title("Area");
+                col.Bound(p => p.ShimanoBadge).Title("Shimano Badge").Visible(System.Configuration.ConfigurationManager.AppSettings["PlantCode"] == "2300" ? false : true);
+                col.Bound(p => p.VehicleNo).Title("Vehicle No").Visible(System.Configuration.ConfigurationManager.AppSettings["PlantCode"] == "2300" ? false : true);
+            })
+            //.Events(ev => ev.Change("onChange"))
+            .Filterable().Mobile()
+            //            .Selectable()
+            //.Events(e => e.Change("onChange"))
+            .Pageable().AutoBind(false)
+            .Resizable(resizable => resizable.Columns(true))
+            .Sortable().Scrollable(s => s.Enabled(true))
+            .HtmlAttributes(new { style = "height:550px;" })
+                                               .DataSource(dataSource => dataSource
+                                               .Ajax()
+                                               //.Events(events => events.Error("error_handler"))
+                                               .Model(model => model.Id(p => p.LogId))
+                                               .PageSize(40)
+                                               .Read(read => read.Action("GetListVisitorToday", "Dashboard").Data("fnGetDashboardParam"))
+                        )
+                    )
+
+                </div>
+            </div>
+            <hr />
+            <div class="row" id="RowUrgentReport">
+                <div class="col-md-12">
+                    <button class="btn btn-info" onclick="fnBtnUrgent()"><i class="fa fa-exclamation"> Get Urgent Report</i></button>
+                </div>
+            </div>
+            <hr />
+            @if (System.Configuration.ConfigurationManager.AppSettings["PlantCode"] == "2300")
+            {
+                @RenderVisitorTS()
+            }
+            
+        </div>
+        @*<div class="col-md-3">
+                <h4>
+                    Graph Visitor
+                </h4>
+                <div class="row">
+
+                </div>
+            </div>*@
+    </div>
+}
+@helper RenderVisitorTS()
+{
+    <div class="row">
+        <div class="col-md-4">
+            @Html.Label("txtSearchTS", "Search By Visitor Name")
+            @Html.Kendo().TextBox().Name("txtSearchTS").HtmlAttributes(new { @class = "form-control ShimanoTextBox", style = "width:100%", @onchange = "showMyTask()" })
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-12">
+            <div class="col-md-12">
+                @(Html.Kendo().Grid<TSLogHistory>().Name("TSVisitorToday")
+.Columns(col =>
+{
+    col.Bound(p => p.TimeStart).Title("Time Checkin");
+    col.Bound(p => p.FullName).Title("Name");
+    col.Bound(p => p.Duration).Title("Duration");
+    col.Bound(p => p.HostName).Title("Host Name");
+    col.Bound(p => p.Status).Title("Status").ClientTemplate("#= SetStatusColor(Status) #");
+    col.Bound(p => p.NeedLunch).Title("Include Lunch?").ClientTemplate("#= SetLunchStatus(NeedLunch) #");
+})
+//.Events(ev => ev.Change("onChange"))
+.Filterable()
+//            .Selectable()
+//.Events(e => e.Change("onChange"))
+.Pageable().AutoBind(true)
+.Resizable(resizable => resizable.Columns(true))
+.Sortable()
+.Scrollable()
+.HtmlAttributes(new { style = "height:550px;" })
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                //.Events(events => events.Error("error_handler"))
+                                .Model(model => model.Id(p => p.LogId))
+                                .PageSize(40)
+                                .Read(read => read.Action("GetVisitorTSToday", "TSVisitor").Data("fnGetParameterTS"))
+        )
+                )
+            </div>
+        </div>
+    </div>
+}
+
+
+
+<script>
+    $(document).ready(function () {
+        
+        $(".k-button").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+        $(".k-header").on('click', function (e) {
+            setTimeout(Sys.DialogClose(), 1000)
+
+        });
+        GetVisitorTableToday();
+        LoadModalMessage();
+        //DP.Ajax(data, link, GenerateCheckBox)
+    });
+    setInterval(function () {
+        GetVisitorTableToday();
+    }, 90000);
+    function fnBtnUrgent() {
+        window.location = "@Url.Action("GetUrgentlyFileReport", "Dashboard")"
+    }   
+</script>
+
+<script>
+    function fnGetDashboardParam() {
+        return {
+            Name: $("#txtSearch").val(),
+            Status: $("#StatusDashboard").val(),
+            Host: $("#txtByHost").val(),
+            Plant: $("#searchPlant").val(),
+        }
+    }
+    function GetVisitorTableToday() {
+        $("#VisitorTodayGrid").data('kendoGrid').dataSource.read()
+    }
+    function GetNewLineTable(text1, text2) {
+        if (text1.toUpperCase() == "CANCELLED" || text1.toUpperCase() == "REJECTED") {
+            return "<div class='NeedApprove'>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+        else if (text1.toUpperCase() == "APPROVED") {
+            return "<div class='NoNeedApprove'>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+        else if (text1.toUpperCase() == "PENDING") {
+            return "<div class='PendingStatus'>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+        else if (text1.toUpperCase() == "CHECKIN") {
+            return "<div class='CheckinStatus'>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+        else if (text1.toUpperCase() == "CHECKOUT" | text1.toUpperCase() == "BREAK") {
+            return "<div class='CheckoutStatus'>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+        else {
+            return "<div>" + text1 + "<br/>(" + text2 + ")" + "</div>";
+        }
+
+    }
+    function GetVisitorTypeColor(VisitorType, NeedApprove) {
+        if (NeedApprove.toUpperCase() == "FALSE") {
+            return "<div class='NoNeedApprove'>" + VisitorType + "</div>";
+        }
+        
+        else {
+            return "<div class='NeedApprove'>" + VisitorType + "</div>";
+        }
+    }
+    function onChange(e) {
+        var rows = e.sender.select();
+        rows.each(function (e) {
+            var grid = $("#VisitorTodayGrid").data("kendoGrid");
+            var dataItem = grid.dataItem(this);
+
+            console.log(dataItem.FullName);
+            $("#txtTitleVisitor").text(dataItem.FullName)
+        })
+        
+        $("#windowDetailVisitor").data("kendoWindow").open().center()
+    }
+</script>
+
+<script>
+    $(document).ready(function(){
+        DP.AJaxAll({
+        }, "@Url.Action("GetVisitorPieChartMonth", "Dashboard")", GeneratePieChart)
+        DP.AJaxAll({
+
+        }, "@Url.Action("GetDashboardRank", "Dashboard")", function (data) {
+            RenderRankChart(data.RankDepartment, "Department", "RankDepartment")
+            RenderRankChart(data.RankUser, "User", "RankUser")
+            RenderRankChart(data.RankVisitor, "Visitor", "RankVisitor")
+            RenderRankChart(data.RankCompany, "Company", "RankCompany")
+            RenderRankChart(data.RankDate, "Date", "RankDate")
+            RenderRankChart(data.RankVisitorType, "Visitor Type", "RankVisitorType")
+        })
+        
+    })
+    function GeneratePieChart(data) {
+        var dt = new Date();
+        var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        var thisMonth = months[dt.getMonth()];
+        Highcharts.chart('VisitorPerMonth', {
+            chart: {
+                type: 'pie'
+            },
+            title: {
+                text: "Visitor total Per. " + thisMonth + "-" + dt.getFullYear()
+            },
+            subtitle: {
+                text: 'Click the slices to view Per Department'
+            },
+            credits: {
+                enabled: false
+            },
+            plotOptions: {
+                series: {
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.Name}: {point.y}'
+                    }
+                }
+            },
+
+            tooltip: {
+                headerFormat: '<span style="font-size:11px">{series.Name}</span><br>',
+                pointFormat: '<span style="color:{point.color}">{point.Name}</span>: <b>{point.y} person(s)</b> of total<br/>'
+            },
+
+            series: [
+                {
+                    name: "Visitor Count",
+                    colorByPoint: true,
+                    data: data.parent
+                }
+            ],
+            drilldown: {
+                series: data.child
+            }
+        });
+    }
+    
+</script> 
+
+@{
+    Html.RenderPartial("_detailVisitor");
+}
+
+<script>
+    function RenderRankChart(data, Title, div) {
+        var dt = new Date();
+        var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        var thisMonth = months[dt.getMonth()];
+        Highcharts.chart(div, {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: Title + "<br/>Per. " + thisMonth + "-" + dt.getFullYear()
+            },
+            xAxis: {
+                type: 'category',
+                labels: {
+                    rotation: -45,
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: Title + '(peson(s))'
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                pointFormat: 'Visitor in ' + thisMonth + "-" + dt.getFullYear() + ': <b>{point.y}</b>'
+            },
+            series: [{
+                name: Title,
+                data: data,
+                dataLabels: {
+                    enabled: true,
+                    rotation: -90,
+                    color: '#FFFFFF',
+                    align: 'right',
+                    format: '{point.y}', // one decimal
+                    y: 10, // 10 pixels down from the top
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+            }]
+        });
+    }
+</script>
+<script>
+    function SetLunchStatus(NeedLunch) {
+        if (NeedLunch) {
+            return "<div class='NoNeedApprove'><i class='fa fa-check'></i> YES</div>";
+        }
+        else {
+            return "<div class='NeedApprove'><i class='fa fa-times'></i> NO</div>";
+        }
+    }
+    function SetStatusColor(status) {
+        if (status.toUpperCase() == "CHECKIN") {
+            return "<div class='CheckinStatus'>" + status + "</div>";
+        }
+        else if (status.toUpperCase() == "CHECKOUT" | status.toUpperCase() == "BREAK") {
+            return "<div class='CheckoutStatus'>" + status + "</div>";
+        }
+    }
+    function showMyTask() {
+        $("#TSVisitorToday").data('kendoGrid').dataSource.read()
+    }
+</script>
+<script>
+    function fnGetParameterTS() {
+        return {
+            Name: $("#txtSearchTS").val()
+        }
+    }
+</script>
