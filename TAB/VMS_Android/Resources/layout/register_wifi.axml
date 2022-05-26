@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:paddingLeft="0dp"
+	android:paddingRight="0dp"
+	android:theme="@style/AppTheme"
+	android:minWidth="25px"
+	android:background="@drawable/bg_primary"
+	android:minHeight="25px">
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:theme="@style/AppTheme"
+	android:focusableInTouchMode="true">
+	<LinearLayout
+		android:orientation="horizontal"
+		android:minWidth="25px"
+		android:minHeight="25px"
+		android:layout_width="match_parent"
+		android:layout_weight="1"
+		android:layout_height="match_parent"
+		android:id="@+id/LineWhite"
+		android:background="@drawable/bg_primary"
+		android:layout_marginTop="0.0dp">
+		<RelativeLayout
+			android:orientation="horizontal"
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_weight="1"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:id="@+id/relativeAllBlue"
+			>
+			<RelativeLayout
+				android:orientation="horizontal"
+				android:minWidth="25px"
+				android:minHeight="25px"
+				android:layout_width="350dp"
+				android:layout_height="wrap_content"
+				android:id="@+id/Box_1"
+				android:background="#26376C"
+				android:layout_marginTop="50.0dp"
+				android:layout_centerHorizontal="true"
+				android:layout_centerVertical="true"
+				>
+				<TextView
+					android:text="Host Name"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/tit1e_1"
+					android:layout_marginTop="0dp"
+					android:textSize="20dp"
+					android:textColor="@android:color/white"
+					android:includeFontPadding="false" />
+				<EditText
+					android:layout_below="@id/tit1e_1"
+					android:layout_centerHorizontal="true"
+					android:layout_width="match_parent"
+					android:layout_height="40dp"
+					android:id="@+id/txtHostName"
+					android:textColor="#ff000000"
+					android:textStyle="bold"
+					android:singleLine="true"
+					android:background="#ffffffff"
+					android:textAlignment="center"
+					android:textSize="24dp"
+					android:inputType="textCapCharacters"
+					android:textAllCaps="true"/>
+				<TextView
+					android:layout_below="@id/txtHostName"
+					android:text="Visitor Name"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/visName"
+					android:layout_marginTop="0dp"
+					android:textSize="20dp"
+					android:textColor="@android:color/white"
+					android:includeFontPadding="false" />
+				<EditText
+					android:layout_below="@id/visName"
+					android:layout_centerHorizontal="true"
+					android:layout_width="match_parent"
+					android:layout_height="40dp"
+					android:id="@+id/txtVisitorName"
+					android:textColor="#ff000000"
+					android:textStyle="bold"
+					android:singleLine="true"
+					android:background="#ffffffff"
+					android:textAlignment="center"
+					android:inputType="textCapCharacters"
+					android:textSize="24dp"
+					android:textAllCaps="true"/>
+
+				<TextView
+					android:layout_below="@id/txtVisitorName"
+					android:text="Expired Time"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/lblDuration"
+					android:layout_marginTop="0dp"
+					android:textSize="20dp"
+					android:textColor="@android:color/white"
+					android:includeFontPadding="false" />
+					<EditText
+						android:layout_below="@id/lblDuration"
+						android:layout_centerHorizontal="true"
+						android:layout_width="match_parent"
+						android:layout_height="40dp"
+						android:id="@+id/txtExp"
+						android:textColor="#ff000000"
+						android:textStyle="bold"
+						android:singleLine="true"
+						android:background="#ffffffff"
+						android:textAlignment="center"
+						android:inputType="textCapCharacters"
+						android:textSize="24dp"
+						android:textAllCaps="true"
+						android:editable="false"
+						android:focusableInTouchMode="false" />
+
+				<Button
+					android:layout_below="@id/txtExp"
+					android:text="Get WIFI for Guest ID"
+					android:layout_marginTop="20dip"
+					android:layout_marginBottom="20dip"
+					android:layout_width="match_parent"
+					android:layout_height="50dp"
+					android:layout_centerHorizontal="true"
+					android:id="@+id/btnGen"
+					android:textColor="#ffffffff"
+					android:textSize="28dp"
+					android:textAlignment="center"
+					android:background="@color/btnColor_1" />
+				<TextView
+					android:layout_below="@id/btnGen"
+					android:text="* This wifi only for 1 day"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/txtInfo"
+					android:layout_marginTop="0dp"
+					android:textSize="12dp"
+					android:textColor="@android:color/white"
+					android:includeFontPadding="false" />
+					
+
+			</RelativeLayout>
+		</RelativeLayout>
+	</LinearLayout>
+</LinearLayout>
+	<Button
+		android:text=""
+		android:layout_width="60dp"
+		android:layout_height="60dp"
+		android:id="@+id/btnNext"
+		android:textSize="35dp"
+		android:padding="5dp"
+		android:layout_marginRight="30dp"
+		android:textColor="#ffffffff"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentBottom="true"
+		android:foregroundGravity="right"
+		android:background="@drawable/btn_next" />
+	<TextView
+		android:textSize="25dp"
+		android:text="Back to Main Menu"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:textColor="#ffffff"
+		android:textStyle="bold"
+		android:layout_alignParentBottom="true"
+		android:foregroundGravity="right"
+		android:layout_marginRight="30dp"
+		android:layout_marginBottom="15dp"
+		android:layout_toLeftOf="@id/btnNext"
+		android:id="@+id/footer_1"/>
+</RelativeLayout>

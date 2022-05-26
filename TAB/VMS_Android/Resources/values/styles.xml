@@ -1,0 +1,26 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.CompactMenu">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+  <style name="CustomAppTheme" parent="Theme.AppCompat">
+    <item name="android:textColorPrimaryDisableOnly">#00838f</item>
+    <item name="colorAccent">#e91e63</item>
+  </style>
+  <style name="MySwitch" parent="@style/Widget.AppCompat.CompoundButton.Switch">
+    <item name="android:textColorPrimaryDisableOnly">#b71c1c</item>
+    <item name="android:colorControlActivated">#1b5e20</item>
+    <item name="android:colorForeground">#f57f17</item>
+    <item name="android:textAppearance">@style/TextAppearance.AppCompat</item>
+  </style>
+  <style name="AppTheme.NoActionBar">
+    <item name="windowNoTitle">true</item>
+    <item name="windowActionBar">false</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowContentOverlay">@null</item>
+  </style>
+</resources>

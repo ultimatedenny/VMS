@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false"
+        android:color="@color/switchTrackDisable"/>
+    <item android:state_checked="true"
+        android:color="@color/switchTrackActive" />
+    <item android:color="@color/switchTrackNormal" />
+  </selector>-->
+
+<resources>
+    <color name="colorPrimary">#2c3e50</color>
+    <color name="colorPrimaryDark">#1B3147</color>
+    <color name="colorAccent">#3498db</color>
+  <color name="switchTrack">#ffd600</color>
+  <color name="switchTrackDisable">#90caf9</color>
+  <color name="switchTrackActive">#1565c0</color>
+  <color name="switchTrackNormal">#90caf9</color>
+  <color name="switchThumbBgActive">#1b5e20</color>
+  <color name="switchThumbActive">#ad1457</color>
+  <color name="switchThumbkNormal">#64b5f6</color>
+  <color name="BGColor">#0A2751</color>
+  <color name="PrimaryColor">#00709F</color>
+  <color name="btnColor_1">#90895F</color>
+  
+</resources>
+
