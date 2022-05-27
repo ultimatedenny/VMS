@@ -129,7 +129,7 @@
                                                    Text = "CHECKOUT", Value = "CHECKOUT"
                                                   },
                                                   new SelectListItem() {
-                                                   Text = "PENDING", Value = "PENDING"
+                                                   Text = "WAITING APPROVAL", Value = "WAITING APPROVAL"
                                                   },
                                                   new SelectListItem() {
                                                    Text = "REJECTED", Value = "REJECTED"
@@ -137,8 +137,6 @@
                                                   new SelectListItem() {
                                                    Text = "CANCELLED", Value = "CANCELLED"
                                                   }
-
-
                                           })
                                           .Value(System.Configuration.ConfigurationManager.AppSettings["FilterType"])
                                           .Suggest(true)

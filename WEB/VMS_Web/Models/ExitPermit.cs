@@ -12,26 +12,12 @@ namespace VMS.Web.Models
         DataTable dt;
         //long num;
         public string ConnectionDB = System.Configuration.ConfigurationManager.ConnectionStrings["VMSConnection"].ToString();
-        public List<EPMaster2> GetExitPermitDatatables(string ExitPermitNo, string DateFrom, string DateTo)
+        public List<EPMaster2> GetExitPermitDatatables(string ExitPermitNo, string DateFrom, string DateTo, string UseID)
         {
-            string query = @"SELECT	EM.MasterId as Id, 
-                                EM.SENo as No,
-		                        EM.EPNo as ExitPermit,
-		                        EM.UseDep as Departement,
-		                        P.PlantName as Section,
-		                        EM.Destination as Destination,
-		                        Convert(nvarchar(10),EM.[Date],121) as [Date],
-		                        EM.[Out] as [Out],
-		                        EM.[In] as [In],
-		                        EM.CompTrans as CompanyTransport,
-		                        EM.CompTransTime as CompanyTransportTime,
-		                        EM.[Status] as [Status]
-                                from EPMASTER EM
-                                INNER JOIN Plant P on EM.PlantID = P.plantId where EM.EPNo like '%" + ExitPermitNo + @"%' and  EM.[Status] = 'PENDING' and
-                                                                                   EM.[Date] between '" + DateFrom + @"' and '" + DateTo + @"' Order by EM.[Date] DESC ";
+            string QUERY = "EXEC [SP_GET_PENDING_EP] '" + ExitPermitNo + "','PENDING','"+ DateFrom + "','"+ DateTo + "','"+ UseID + "'";
             using (var sql = new MSSQL())
             {
-                dt = sql.ExecDTQuery(ConnectionDB, query, null, null, false);
+                dt = sql.ExecDTQuery(ConnectionDB, QUERY, null, null, false);
             }
             var _ExitPermit = (from rw in dt.AsEnumerable()
                                select new EPMaster2
@@ -53,24 +39,10 @@ namespace VMS.Web.Models
         }
         public List<EPMaster2> GetExitPermitDatatablesSecurity(string ExitPermitNo, string DateFrom, string DateTo)
         {
-            string query = @"SELECT	EM.MasterId as Id, 
-                                EM.SENo as No,
-		                        EM.EPNo as ExitPermit,
-		                        EM.UseDep as Departement,
-		                        P.PlantName as Section,
-		                        EM.Destination as Destination,
-		                        Convert(nvarchar(10),EM.[Date],121) as [Date],
-		                        EM.[Out] as [Out],
-		                        EM.[In] as [In],
-		                        EM.CompTrans as CompanyTransport,
-		                        EM.CompTransTime as CompanyTransportTime,
-		                        EM.[Status] as [Status]
-                                from EPMASTER EM
-                                INNER JOIN Plant P on EM.PlantID = P.plantId where EM.EPNo like '%" + ExitPermitNo + @"%' and  EM.[Status] = 'APPROVED' and
-                                                                                   EM.[Date] between '" + DateFrom + @"' and '" + DateTo + @"'Order by EM.[Date] DESC";
+            string QUERY = "EXEC [SP_GET_PENDING_EP_SECURITY] '" + ExitPermitNo + "','APPROVED','" + DateFrom + "','" + DateTo + "'";
             using (var sql = new MSSQL())
             {
-                dt = sql.ExecDTQuery(ConnectionDB, query, null, null, false);
+                dt = sql.ExecDTQuery(ConnectionDB, QUERY, null, null, false);
             }
             var _ExitPermit = (from rw in dt.AsEnumerable()
                                select new EPMaster2

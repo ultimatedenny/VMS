@@ -17,7 +17,7 @@ namespace VMS.Web.Models
         //DataTable dt;
         //long num;
         public string ConnectionDB = System.Configuration.ConfigurationManager.ConnectionStrings["VMSConnection"].ToString();
-        public string ConnectionDB1 = System.Configuration.ConfigurationManager.ConnectionStrings["ApprovalConnection"].ToString();
+        //public string ConnectionDB1 = System.Configuration.ConfigurationManager.ConnectionStrings["ApprovalConnection"].ToString();
         public string GetUserApprovalEP(Guid MasterId, string EPNo_)
         {
             string query = @"
@@ -154,9 +154,9 @@ namespace VMS.Web.Models
             }
             
             var click_action = "";
-            string query = @"select Token from tblToken where useid = '"+ UseId + "'";
+            string query = @"select Token from DBAPPROVAL.DBO.tblToken where useid = '" + UseId + "'";
             var sql = new MSSQL();
-            var GetToken = sql.ExecDTQuery(ConnectionDB1, query, null, null, false);
+            var GetToken = sql.ExecDTQuery(ConnectionDB, query, null, null, false);
             if (GetToken != null || GetToken.Rows.Count > 0)
             {
                 foreach (DataRow TokenId in GetToken.Rows)

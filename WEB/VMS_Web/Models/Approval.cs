@@ -17,11 +17,13 @@ namespace VMS.Web.Models
         public string ConnectionDB = System.Configuration.ConfigurationManager.ConnectionStrings["VMSConnection"].ToString();
         public VMSRes<string> ApproveAction(string Username, string LogId, string Status, string ApprovedRemark = "")
         {
-            List<ctSqlVariable> paramss = new List<ctSqlVariable>();
-            paramss.Add(new ctSqlVariable { Name = "logid", Value = LogId, Type = "String" });
-            paramss.Add(new ctSqlVariable { Name = "UserID", Value = Username, Type = "String" });
-            paramss.Add(new ctSqlVariable { Name = "StatusRequest", Value = Status, Type = "String" });
-            paramss.Add(new ctSqlVariable { Name = "Remark", Value = ApprovedRemark, Type = "String" });
+            List<ctSqlVariable> paramss = new List<ctSqlVariable>
+            {
+                new ctSqlVariable { Name = "logid", Value = LogId, Type = "String" },
+                new ctSqlVariable { Name = "UserID", Value = Username, Type = "String" },
+                new ctSqlVariable { Name = "StatusRequest", Value = Status, Type = "String" },
+                new ctSqlVariable { Name = "Remark", Value = ApprovedRemark, Type = "String" }
+            };
             using (var sql = new MSSQL())
             {
                 dt = sql.ExecuteStoProcDT(ConnectionDB, "ApprovalAction", paramss);
@@ -76,7 +78,7 @@ select @UseNam as Usenam";
             //END";
             string ApproverWindowsID = Sessions.GetUseID();
             string query = $@"EXEC spCheckApprovalAuthorization @UseLev = '{Uselev}', @ApprovalGroup = '{ApprovalGroup}',
-	                            @UserPlant = '{Sessions.GetUsePlant()}', @ApproverWindowsID = '{ApproverWindowsID}'";
+	                       @UserPlant = '{Sessions.GetUsePlant()}', @ApproverWindowsID = '{ApproverWindowsID}'";
             using (var sql = new MSSQL())
             {
                 dt = sql.ExecDTQuery(ConnectionDB, query, null, null, false);

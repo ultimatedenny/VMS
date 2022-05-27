@@ -727,7 +727,7 @@
         });
     }
     function ApprovalActionAjax() {
-        var LogId = $("#LogId").val();
+        var LogId  = $("#LogId").val();
         var Status = $("#Status").val();
         var Remark = $("#Remark").val().replace(/'/g, '`');
         console.log(Status);
@@ -739,8 +739,8 @@
                 type: "POST",
                 data: { LogId: LogId, Status: Status, Remark: Remark },
                 success: function (data) {
-                    if (data.Success === true) {
-                        toastr.success(data.message, "Success!");
+                    if (data.Success == true) {
+                        toastr.success(data.Messagge, "Success!");
                         $('#modalApprovalAction').modal('hide');
                         showMyTask();
                         ShowMyRequest();
@@ -748,7 +748,7 @@
                     }
                     else {
                         $('#modalApprovalAction').modal('hide');
-                        toastr.warning(data.message, "Warning!");
+                        toastr.warning(data.Messagge, "Warning!");
                         showMyTask();
                         ShowMyRequest();
                         ShowHistoryMyTask();

@@ -299,7 +299,7 @@ namespace VMS.Web.Controllers
                 }
                 else
                 {
-                    var _Permit = _epAction.GetExitPermitDatatables(ExitPermitNo, DateFrom, DateTo);
+                    var _Permit = _epAction.GetExitPermitDatatables(ExitPermitNo, DateFrom, DateTo, Session["UseID"].ToString());
                     recordsTotal = _Permit.Count();
                     var data = _Permit.Skip(skip).Take(pageSize).ToList();
                     return Json(new { draw = draw, recordsFiltered = recordsTotal, recordsTotal = recordsTotal, data = data });
